@@ -253,7 +253,7 @@ def draw_callback_px(self, context):
     # (1) dump buffer in texture
     update_image(self.color_id, self.viewport, GL_RGBA, GL_TEXTURE0)
 
-    # (3) run screenshader
+    # (2) run screenshader
     glEnable(GL_DEPTH_TEST)
     glDepthFunc(GL_LESS)
 
@@ -270,18 +270,12 @@ def draw_callback_px(self, context):
     # set identity matrices
     view_setup()
 
-    # calculate matrixes
-    projection_matrix = Matrix((pjm[0:4], pjm[4:8], pjm[8:12], pjm[12:16])).transposed()
-    modelview_matrix = Matrix((mvm[0:4], mvm[4:8], mvm[8:12], mvm[12:16])).transposed()
-
-    modelviewprojinv_matrix = (projection_matrix * modelview_matrix).inverted()
-    modelviewprojinv_mat = Buffer(GL_FLOAT, (4,4), modelviewprojinv_matrix.transposed())
-
+    # update shader
     glUseProgram(self.program_shader)
     setup_uniforms(self.program_shader, self.color_id, self.width, self.height, is_left)
     draw_rectangle()
 
-    # (4) restore opengl defaults
+    # (3) restore opengl defaults
     glUseProgram(0)
     glActiveTexture(act_tex[0])
     glBindTexture(GL_TEXTURE_2D, 0)
