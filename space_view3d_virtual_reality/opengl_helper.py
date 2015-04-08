@@ -169,7 +169,7 @@ def create_shader(source, program=None, type=GL_FRAGMENT_SHADER):
     return program
 
 
-def setup_uniforms(program, color_id, width, height):
+def setup_uniforms(program, color_id, width, height, is_left):
     """"""
     uniform = glGetUniformLocation(program, "bgl_RenderedTexture")
     glActiveTexture(GL_TEXTURE0)
@@ -181,6 +181,9 @@ def setup_uniforms(program, color_id, width, height):
 
     uniform = glGetUniformLocation(program, "bgl_RenderedTextureHeight")
     if uniform != -1: glUniform1f(uniform, height)
+
+    uniform = glGetUniformLocation(program, "bgl_RenderedStereoEye")
+    if uniform != -1: glUniform1f(uniform, 0 if is_left else 1)
 
 def bindcode(image):
     """load the image in the graphic card if necessary"""
@@ -240,6 +243,8 @@ def draw_callback_px(self, context):
     """core function"""
     if not self._enabled: return
 
+    is_left = self.is_stereo_left(context)
+
     act_tex = Buffer(GL_INT, 1)
     glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
 
@@ -273,7 +278,7 @@ def draw_callback_px(self, context):
     modelviewprojinv_mat = Buffer(GL_FLOAT, (4,4), modelviewprojinv_matrix.transposed())
 
     glUseProgram(self.program_shader)
-    setup_uniforms(self.program_shader, self.color_id, self.width, self.height)
+    setup_uniforms(self.program_shader, self.color_id, self.width, self.height, is_left)
     draw_rectangle()
 
     # (4) restore opengl defaults

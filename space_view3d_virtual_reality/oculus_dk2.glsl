@@ -1,6 +1,7 @@
 uniform sampler2D bgl_RenderedTexture;
 uniform float bgl_RenderedTextureWidth;
 uniform float bgl_RenderedTextureHeight;
+uniform float bgl_RenderedStereoEye;
 
 const vec4 kappa = vec4(1.0,0.7,1.0,1.0);
 
@@ -44,6 +45,11 @@ void main()
     vec2 ScaleIn = vec2(2.0 * scaleFactor, 1.0 / as * scaleFactor);
 
     vec2 texCoord = (gl_TexCoord[0].st);
+    texCoord.x *= 0.5;
+
+    if (bgl_RenderedStereoEye > 0.1)
+        texCoord.x += 0.5;
+
     vec2 texCoordSeparated = texCoord;
 
     vec2 tcR = vec2(0.0);

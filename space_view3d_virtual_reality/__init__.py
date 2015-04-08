@@ -136,8 +136,6 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             space.show_only_render = True
             space.stereo_3d_camera = 'S3D'
 
-            #bpy.v3d = get_context_3dview(context)
-            #bpy.space = space
             bpy.ops.view3d.viewnumpad(type='CAMERA')
 
             self._timer = context.window_manager.event_timer_add(0.1, context.window)
@@ -179,6 +177,11 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
         """garbage colect"""
         if self.color_id:
             delete_image(self.color_id)
+
+    def is_stereo_left(self, context):
+        """"""
+        space = get_space_3dview(context)
+        return space.stereo_3d_eye == 'LEFT'
 
 
 def register():
