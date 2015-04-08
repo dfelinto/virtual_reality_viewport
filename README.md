@@ -9,7 +9,7 @@ This is WIP/Pre-Alpha state, use at your own risk.
 
 Current State
 =============
-<img src="https://pbs.twimg.com/media/CCDEuQFWIAIMaEN.jpg:large" width="550" />
+<img src="https://pbs.twimg.com/media/CCDEuQFWIAIMaEN.jpg:large" width="600" />
 
 Roadmap
 =======
@@ -22,3 +22,8 @@ There are a few things I still need to implement:
 * Go to the camera view (NUMPAD 0)
 
 Feel free to send pull requests to any of the above.
+
+Credits
+=======
+Oculus DK2 Shader by Martinsh Upitis (which I guess based his work from elsewhere)
+OculusVR wrapper by https://github.com/jherico/python-ovrsdk
