@@ -45,7 +45,7 @@ class Oculus():
             self._hmd = Hmd()
             self._description = cast(self._hmd.hmd, POINTER(ovrHmdDesc)).contents
             self._frame = 0
-            self._eye_offset = [ [0.0, 0.0, 0.0], [0.0, 0.0, 0.0] ]
+            self._eyes_offset = [ [0.0, 0.0, 0.0], [0.0, 0.0, 0.0] ]
             self._hmd.configure_tracking()
 
             print(self._description.ProductName)
