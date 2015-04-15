@@ -69,7 +69,7 @@ class Oculus():
         if not matrix:
             return
 
-        self._camera.matrix_world = matrix * self._matrix_world
+        self._camera.matrix_world =  self._matrix_world * matrix
 
     def quit(self):
         from oculusvr import Hmd
@@ -105,7 +105,6 @@ class Oculus():
             position = Matrix.Translation(position_raw)
 
             matrix = position * rotation
-            matrix.invert()
-
             return matrix
+
         return None
