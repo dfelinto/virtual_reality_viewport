@@ -159,7 +159,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             if bpy.ops.view3d.view_all.poll():
                 bpy.ops.view3d.view_all()
 
-            self._timer = context.window_manager.event_timer_add(0.1, context.window)
+            self._timer = context.window_manager.event_timer_add(1.0/75.0, context.window) # 75 Hz
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context), 'WINDOW', 'POST_VIEW')
             context.window_manager.modal_handler_add(self)
 
