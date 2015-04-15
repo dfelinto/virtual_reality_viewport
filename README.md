@@ -12,7 +12,7 @@ Now press ``Home`` + ``Alt + F11`` + ``Alt + F10``.
 
 Current State
 =============
-<img src="https://pbs.twimg.com/media/CCDEuQFWIAIMaEN.jpg:large" width="600" />
+<img src="https://pbs.twimg.com/media/CCm5C85WYAAy2jL.jpg:large" width="600" />
 
 Installation
 ============
