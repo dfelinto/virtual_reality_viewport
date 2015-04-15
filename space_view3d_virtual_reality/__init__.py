@@ -158,8 +158,11 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             space.stereo_3d_camera = 'S3D'
             space.region_3d.view_perspective = 'CAMERA'
 
+            # if you uncomment the next lines, viewport camera fails
+            """
             if bpy.ops.view3d.view_all.poll():
                 bpy.ops.view3d.view_all()
+            """
 
             self._timer = context.window_manager.event_timer_add(1.0/75.0, context.window) # 75 Hz
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context), 'WINDOW', 'POST_VIEW')
@@ -203,7 +206,8 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             space, show_only_render, stereo_3d_camera, view_perspective  = self._space
             space.show_only_render = show_only_render
             space.stereo_3d_camera = stereo_3d_camera
-            space.region_3d.view_perspective = view_perspective
+            if space.region_3d:
+                space.region_3d.view_perspective = view_perspective
         except Exception as err:
             self.report({'ERROR'}, str(err))
 
