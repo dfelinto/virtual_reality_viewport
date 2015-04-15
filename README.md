@@ -1,14 +1,14 @@
 # Virtual Reality Viewport
 Addon to bring virtual reality devices to the Blender viewport.
 
+This is work in progress/pre-alpha state, use at your own risk.
+
 How to Use
 ==========
 
 In the viewport press ``Space`` + ``Virtual Reality Viewport``.
 
 Now press ``Home`` + ``Alt + F11`` + ``Alt + F10``.
-
-This is work in progress/pre-alpha state, use at your own risk.
 
 Current State
 =============
@@ -53,5 +53,7 @@ Feel free to send pull requests to any of the above.
 Credits
 =======
 Oculus DK2 Shader by Martins Upitis (which I guess based his work from elsewhere)
+
 OculusVR wrapper by https://github.com/jherico/python-ovrsdk
+
 Blender Addon - Dalai Felinto - http://www.dalaifelinto.com
