@@ -47,6 +47,7 @@ from .opengl_helper import (
         resize,
         )
 
+from . import oculus
 
 def get_context_3dview (context):
     """returns area and space"""
@@ -88,9 +89,15 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
     _enabled = True
     _timer = None
 
+    @classmethod
+    def poll(cls, context):
+        camera = context.scene.camera
+        return camera and camera.type == 'CAMERA'
+
     def modal(self, context, event):
         if event.type == 'ESC':
-            return self.cancel(context)
+            self.oculus.quit()
+            return self.cancel()
 
         if event.type == 'TIMER':
 
@@ -107,6 +114,8 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             if (self.width != context.region.width) or (self.height != context.region.height):
                 resize(self, context)
 
+            self.oculus.update(context)
+
 
         return {'PASS_THROUGH'}
 
@@ -120,10 +129,16 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
         """
 
         if context.area.type == 'VIEW_3D':
+            scene = context.scene
+            self.oculus = oculus.Oculus(scene.camera, self.report)
+
+            if not self.oculus.isAvailable():
+                return {'CANCELLED'}
+
             #if bpy.ops.wm.window_fullscreen_toggle.poll():
             #    bpy.ops.wm.window_fullscreen_toggle()
 
-            context.scene.render.use_multiview = True
+            scene.render.use_multiview = True
             context.window.stereo_3d_display.display_mode = 'SIDEBYSIDE'
 
             #if bpy.ops.screen.screen_full_area.poll():
@@ -185,11 +200,11 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    bpy.utils.register_class(VirtualRealityViewportOperator)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(VirtualRealityViewportOperator)
 
 
 if __name__ == '__main__':
