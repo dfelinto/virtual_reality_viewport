@@ -197,12 +197,16 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
         self.quit()
 
         # set back the original values
-        context.scene.render.use_multiview = self._is_multiview
-        context.window.stereo_3d_display.display_mode = self._display_mode
-        space, show_only_render, stereo_3d_camera, view_perspective  = self._space
-        space.show_only_render = show_only_render
-        space.stereo_3d_camera = stereo_3d_camera
-        space.region_3d.view_perspective = view_perspective
+        try:
+            context.scene.render.use_multiview = self._is_multiview
+            context.window.stereo_3d_display.display_mode = self._display_mode
+            space, show_only_render, stereo_3d_camera, view_perspective  = self._space
+            space.show_only_render = show_only_render
+            space.stereo_3d_camera = stereo_3d_camera
+            space.region_3d.view_perspective = view_perspective
+        except Exception as err:
+            self.report({'ERROR'}, err.message)
+
 
         return {'CANCELLED'}
 
