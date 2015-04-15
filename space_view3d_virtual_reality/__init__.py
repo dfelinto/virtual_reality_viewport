@@ -96,8 +96,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == 'ESC':
-            self.oculus.quit()
-            return self.cancel()
+            return self.cancel(context)
 
         if event.type == 'TIMER':
 
@@ -185,6 +184,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             context.window_manager.event_timer_remove(self._timer)
             del self._timer
 
+        self.oculus.quit()
         self.quit()
         return {'CANCELLED'}
 
