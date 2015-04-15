@@ -114,7 +114,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             if (self.width != context.region.width) or (self.height != context.region.height):
                 resize(self, context)
 
-            self.oculus.update(context)
+            self.oculus.update()
 
 
         return {'PASS_THROUGH'}
