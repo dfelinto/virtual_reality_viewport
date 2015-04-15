@@ -88,6 +88,8 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
     _enabled = True
     _timer = None
+    _display_mode = None
+    _is_multiview = None
 
     @classmethod
     def poll(cls, context):
@@ -129,28 +131,33 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
         if context.area.type == 'VIEW_3D':
             scene = context.scene
+            window = context.window
+
             self.oculus = oculus.Oculus(scene.camera, self.report)
 
             if not self.oculus.isAvailable():
                 return {'CANCELLED'}
 
+            self._is_multiview = scene.render.use_multiview
+            self._display_mode = window.stereo_3d_display.display_mode
+
             #if bpy.ops.wm.window_fullscreen_toggle.poll():
             #    bpy.ops.wm.window_fullscreen_toggle()
 
             scene.render.use_multiview = True
-            context.window.stereo_3d_display.display_mode = 'SIDEBYSIDE'
+            window.stereo_3d_display.display_mode = 'SIDEBYSIDE'
 
             #if bpy.ops.screen.screen_full_area.poll():
             #    bpy.ops.screen.screen_full_area(use_hide_panels=True)
-
-            if bpy.ops.view3d.view_all.poll():
-                bpy.ops.view3d.view_all()
 
             space = get_space_3dview(context)
             space.show_only_render = True
             space.stereo_3d_camera = 'S3D'
 
             bpy.ops.view3d.viewnumpad(type='CAMERA')
+
+            if bpy.ops.view3d.view_all.poll():
+                bpy.ops.view3d.view_all()
 
             self._timer = context.window_manager.event_timer_add(0.1, context.window)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context), 'WINDOW', 'POST_VIEW')
@@ -186,6 +193,11 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
         self.oculus.quit()
         self.quit()
+
+        # set back the original values
+        context.scene.render.use_multiview = self._is_multiview
+        context.window.stereo_3d_display.display_mode = self._display_mode
+
         return {'CANCELLED'}
 
     def quit(self):
