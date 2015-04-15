@@ -90,6 +90,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
     _timer = None
     _display_mode = None
     _is_multiview = None
+    _space = None
 
     @classmethod
     def poll(cls, context):
@@ -151,6 +152,8 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             #    bpy.ops.screen.screen_full_area(use_hide_panels=True)
 
             space = get_space_3dview(context)
+            self._space = space, space.show_only_render, space.stereo_3d_camera, space.region_3d.view_perspective
+
             space.show_only_render = True
             space.stereo_3d_camera = 'S3D'
             space.region_3d.view_perspective = 'CAMERA'
@@ -196,6 +199,10 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
         # set back the original values
         context.scene.render.use_multiview = self._is_multiview
         context.window.stereo_3d_display.display_mode = self._display_mode
+        space, show_only_render, stereo_3d_camera, view_perspective  = self._space
+        space.show_only_render = show_only_render
+        space.stereo_3d_camera = stereo_3d_camera
+        space.region_3d.view_perspective = view_perspective
 
         return {'CANCELLED'}
 
