@@ -32,6 +32,7 @@ class Oculus():
                     Hmd,
                     cast,
                     POINTER,
+                    ovrHmdDesc,
                     )
 
             Hmd.initialize()
