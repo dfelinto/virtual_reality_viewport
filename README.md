@@ -8,7 +8,10 @@ How to Use
 
 In the viewport press ``Space`` + ``Virtual Reality Viewport``.
 
-Now press ``Home`` + ``Alt + F11`` + ``Alt + F10``.
+And then press:
+* ``Alt + F11`` (Window Fullscreen)
+* ``Alt + F10`` (Fullscreen Area and Hide Panels)
+* ``Home`` (View All)
 
 Current State
 =============
