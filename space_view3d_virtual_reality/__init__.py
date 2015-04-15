@@ -153,8 +153,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             space = get_space_3dview(context)
             space.show_only_render = True
             space.stereo_3d_camera = 'S3D'
-
-            bpy.ops.view3d.viewnumpad(type='CAMERA')
+            space.region_3d.view_perspective = 'CAMERA'
 
             if bpy.ops.view3d.view_all.poll():
                 bpy.ops.view3d.view_all()

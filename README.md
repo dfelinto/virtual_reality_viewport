@@ -11,7 +11,6 @@ In the viewport press ``Space`` + ``Virtual Reality Viewport``.
 And then press:
 * ``Alt + F11`` (Window Fullscreen)
 * ``Alt + F10`` (Fullscreen Area and Hide Panels)
-* ``Home`` (View All)
 
 Current State
 =============
@@ -47,9 +46,7 @@ First and foremost I plan to suport Oculus Rift, later we can make it flexible e
 For that the next step is to take the transformation data from the device and rotate the viewport camera.
 
 There are a few things I still need to implement:
-* Automatically extend the view (HOME)
 * Automatically go to clean fullscreen (Alt+F10) and fullwindow (Alt+F11)
-* Go to the camera view (NUMPAD 0)
 
 Feel free to send pull requests to any of the above.
 
