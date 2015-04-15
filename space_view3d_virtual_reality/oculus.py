@@ -33,6 +33,7 @@ class Oculus():
                     cast,
                     POINTER,
                     ovrHmdDesc,
+                    ovrVector3f,
                     )
 
             Hmd.initialize()
@@ -45,10 +46,13 @@ class Oculus():
             self._hmd = Hmd()
             self._description = cast(self._hmd.hmd, POINTER(ovrHmdDesc)).contents
             self._frame = 0
-            self._eyes_offset = [ [0.0, 0.0, 0.0], [0.0, 0.0, 0.0] ]
-            self._hmd.configure_tracking()
+            self._eyes_offset = [ ovrVector3f(), ovrVector3f() ]
+            self._eyes_offset[0] = 0.0, 0.0, 0.0
+            self._eyes_offset[1] = 0.0, 0.0, 0.0
 
+            self._hmd.configure_tracking()
             print(self._description.ProductName)
+
             self._camera.data.lens = 16
 
         else:
