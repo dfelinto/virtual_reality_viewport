@@ -205,7 +205,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             space.stereo_3d_camera = stereo_3d_camera
             space.region_3d.view_perspective = view_perspective
         except Exception as err:
-            self.report({'ERROR'}, err.message)
+            self.report({'ERROR'}, str(err))
 
 
         return {'CANCELLED'}
