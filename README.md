@@ -5,6 +5,7 @@ How to Use
 ==========
 
 In the viewport press ``Space`` + ``Virtual Reality Viewport``.
+
 Now press ``Home`` + ``Alt + F11`` + ``Alt + F10``.
 
 This is work in progress/pre-alpha state, use at your own risk.
