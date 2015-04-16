@@ -42,8 +42,9 @@ Optionally, instead of rsync you can generate a new ``.zip``, remove the previou
 
 Roadmap
 =======
-First and foremost I plan to suport Oculus Rift, later we can make it flexible enough to support other HMD devices.
-For that the next step is to take the transformation data from the device and rotate the viewport camera.
+Oculus DK2 is currently working. The next step is to support view navigation (`Shift + F`) within the addon.
+
+Later we can make it flexible enough to support other HMD devices.
 
 There are a few things I still need to implement:
 * Automatically go to clean fullscreen (Alt+F10) and fullwindow (Alt+F11)
