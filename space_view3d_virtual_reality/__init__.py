@@ -139,14 +139,16 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             if not self.oculus.isAvailable():
                 return {'CANCELLED'}
 
-            self._is_multiview = scene.render.use_multiview
             self._display_mode = window.stereo_3d_display.display_mode
+            window.stereo_3d_display.display_mode = 'SIDEBYSIDE'
 
             #if bpy.ops.wm.window_fullscreen_toggle.poll():
             #    bpy.ops.wm.window_fullscreen_toggle()
 
+            self._render = scene.render, scene.render.use_multiview, scene.render.resolution_x, scene.render.resolution_y
             scene.render.use_multiview = True
-            window.stereo_3d_display.display_mode = 'SIDEBYSIDE'
+            scene.render.resolution_x = 1920
+            scene.render.resolution_y = 1080
 
             #if bpy.ops.screen.screen_full_area.poll():
             #    bpy.ops.screen.screen_full_area(use_hide_panels=True)
@@ -198,13 +200,19 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
         # set back the original values
         try:
-            context.scene.render.use_multiview = self._is_multiview
             context.window.stereo_3d_display.display_mode = self._display_mode
+
+            render, use_multiview, resolution_x, resolution_y = self._render
+            render.use_multiview = use_multiview
+            render.resolution_x = resolution_x
+            render.resolution_y = resolution_y
+
             space, show_only_render, stereo_3d_camera, view_perspective  = self._space
             space.show_only_render = show_only_render
             space.stereo_3d_camera = stereo_3d_camera
             if space.region_3d:
                 space.region_3d.view_perspective = view_perspective
+
         except Exception as err:
             self.report({'ERROR'}, str(err))
 
