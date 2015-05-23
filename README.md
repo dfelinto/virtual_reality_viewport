@@ -16,6 +16,8 @@ Current State
 =============
 <img src="https://pbs.twimg.com/media/CCm5C85WYAAy2jL.jpg:large" width="600" />
 
+Video of plugin working:
+
 [![Video of plugin in action](http://img.youtube.com/vi/saSn2qvW0aE/0.jpg)](https://www.youtube.com/watch?v=saSn2qvW0aE)
 
 Installation
