@@ -3,6 +3,11 @@ Addon to bring virtual reality devices to the Blender viewport.
 
 This is work in progress/pre-alpha state, use at your own risk.
 
+Prerequisite
+============
+
+Currently working on Blender Test Build 2.75: http://download.blender.org/release/
+
 How to Use
 ==========
 
