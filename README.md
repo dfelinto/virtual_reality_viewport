@@ -6,7 +6,7 @@ This is work in progress/pre-alpha state, use at your own risk.
 Prerequisite
 ============
 
-Currently working on Blender Test Build 2.75: http://download.blender.org/release/
+Currently working on Blender Test Build 2.75: http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.75
 
 How to Use
 ==========
