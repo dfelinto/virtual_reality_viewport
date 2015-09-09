@@ -70,10 +70,10 @@ def get_space_3dview(context):
     return None
 
 
-def get_glsl_shader():
+def get_glsl_shader(shader_file):
     import os
     folderpath = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(folderpath, 'oculus_dk2.glsl')
+    filepath = os.path.join(folderpath, 'shaders', shader_file)
     f = open(filepath, 'r')
     data = f.read()
     f.close()
@@ -178,7 +178,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             self.color_id = create_image(self.buffer_width, self.buffer_height, GL_RGBA)
 
             # glsl shaders
-            fragment_shader = get_glsl_shader()
+            fragment_shader = get_glsl_shader(self.oculus.shader_file)
             self.program_shader = create_shader(fragment_shader)
 
             return {'RUNNING_MODAL'}

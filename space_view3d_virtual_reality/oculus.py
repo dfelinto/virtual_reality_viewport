@@ -5,6 +5,7 @@ class Oculus():
         self._hmd = None
         self._description = None
         self._camera = camera
+        self._version = 2 # DK2 by default
 
         self._matrix_world = camera.matrix_world.copy()
         self._lens = camera.data.lens
@@ -51,8 +52,7 @@ class Oculus():
             self._eyes_offset[1] = 0.0, 0.0, 0.0
 
             self._hmd.configure_tracking()
-            print(self._description.ProductName)
-
+            self._setVersion(self._description.ProductName)
             self._camera.data.lens = 16
 
         else:
@@ -82,6 +82,27 @@ class Oculus():
             self._hmd.destroy()
             self._hmd = None
             Hmd.shutdown()
+
+    def _setVersion(self, product_name):
+        try:
+            if product_name.find(b'DK2') != -1:
+                self._version = 2
+
+            elif product_name.find(b'DK1') != -1:
+                self._version = 1
+
+            else:
+                raise Exception
+
+        except:
+            print("Error guessing device version (\"{0}\")".format(product_name))
+
+    @property
+    def shader_file(self):
+        if self._version == 1:
+            return 'oculus_dk1.glsl'
+        else:
+            return 'oculus_dk2.glsl'
 
     def _getMatrix(self):
         from oculusvr import Hmd
