@@ -183,7 +183,7 @@ def setup_uniforms(program, color_id, width, height, is_left):
     if uniform != -1: glUniform1f(uniform, height)
 
     uniform = glGetUniformLocation(program, "bgl_RenderedStereoEye")
-    if uniform != -1: glUniform1f(uniform, 0 if is_left else 1)
+    if uniform != -1: glUniform1i(uniform, 0 if is_left else 1)
 
 def bindcode(image):
     """load the image in the graphic card if necessary"""
