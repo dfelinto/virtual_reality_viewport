@@ -29,6 +29,7 @@ class Oculus():
 
     def _start(self):
         try:
+            from time import sleep
             from oculusvr import (
                     Hmd,
                     cast,
@@ -38,6 +39,7 @@ class Oculus():
                     )
 
             Hmd.initialize()
+            sleep(0.5)
 
         except SystemError as err:
             self._error("Oculus initialization failed, check the physical connections and run again")
