@@ -134,7 +134,7 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
             scene = context.scene
             window = context.window
 
-            self.oculus = oculus.Oculus(scene.camera, self.report)
+            self.oculus = oculus.Oculus(scene, self.report)
 
             if not self.oculus.isAvailable():
                 return {'CANCELLED'}

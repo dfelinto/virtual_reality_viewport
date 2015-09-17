@@ -1,14 +1,16 @@
 class Oculus():
-    def __init__(self, camera, report):
+    def __init__(self, scene, report):
         self._report = report
         self._available = True
         self._hmd = None
         self._description = None
-        self._camera = camera
+        self._camera = scene.camera
         self._version = 2 # DK2 by default
 
-        self._matrix_world = camera.matrix_world.copy()
-        self._lens = camera.data.lens
+        self._matrix_world = self._camera.matrix_world.copy()
+        self._lens = self._camera.data.lens
+
+        self._scale = self._calculateScale(scene)
 
         self._checkModule()
         self._start()
@@ -99,6 +101,36 @@ class Oculus():
         except:
             print("Error guessing device version (\"{0}\")".format(product_name))
 
+    def _calculateScale(self, scene):
+        """
+        if BU != 1 meter, scale the transformations
+        """
+        unit_settings = scene.unit_settings
+        system = unit_settings.system
+
+        if system == 'NONE':
+            return None
+
+        elif system == 'METRIC':
+            return 1.0 / unit_settings.scale_length
+
+        elif system == 'IMPERIAL':
+            return 0.3048 / unit_settings.scale_length
+
+        else:
+            assert('Unit system not supported ({0})'.format(system))
+
+    def _scaleMovement(self, position):
+        """
+        if BU != 1 meter, scale the transformations
+        """
+        if self._scale is None:
+            return position
+
+        return [position[0] * self._scale,
+                position[1] * self._scale,
+                position[2] * self._scale]
+
     @property
     def shader_file(self):
         if self._version == 1:
@@ -123,6 +155,9 @@ class Oculus():
 
             rotation_raw = poses[0].Orientation.toList()
             position_raw = poses[0].Position.toList()
+
+            # take scene units into consideration
+            position_raw = self._scaleMovement(position_raw)
 
             rotation = Quaternion(rotation_raw).to_matrix().to_4x4()
             position = Matrix.Translation(position_raw)
