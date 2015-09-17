@@ -39,12 +39,22 @@ Now install the space_view3d_virtual_reality.zip in Blender as an addon.
 
 Update
 ======
-The following commands are for Mac, some changes are needed for other OSs:
-
+In a terminal paste the following commands:
 ```
 $ git pull origin
 $ git submodule update --recursive --remote
+```
+
+Followed by the rsync command for your OS:
+
+Mac:
+```
 $ rsync -rv --exclude=.DS_Store --exclude=.git --exclude=*.blend1 --exclude=*.blend2 --exclude=*.swp --exclude=*.swo space_view3d_virtual_reality ~/Library/Application\ Support/Blender/2.75/scripts/addons/
+```
+
+Linux:
+```
+$ rsync -rv --exclude=.DS_Store --exclude=.git --exclude=*.blend1 --exclude=*.blend2 --exclude=*.swp --exclude=*.swo space_view3d_virtual_reality ~/.config/blender/2.75/scripts/addons/
 ```
 
 Optionally, instead of rsync you can generate a new ``.zip``, remove the previous version of the addon and re-install it.
