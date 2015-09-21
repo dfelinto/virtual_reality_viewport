@@ -21,8 +21,8 @@ bl_info = {
     "name": "Virtual Reality Viewport",
     "author": "Dalai Felinto",
     "version": (0, 9),
-    "blender": (2, 7, 5),
-    "location": "Window Menu",
+    "blender": (2, 7, 7),
+    "location": "View 3D Tools",
     "description": "",
     "warning": "",
     "wiki_url": "",
@@ -48,6 +48,8 @@ from .opengl_helper import (
         )
 
 from . import oculus
+
+from . import ui
 
 def get_context_3dview (context):
     """returns area and space"""
@@ -230,12 +232,18 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
         return space.stereo_3d_eye == 'LEFT'
 
 
+# ############################################################
+# Un/Registration
+# ############################################################
+
 def register():
     bpy.utils.register_class(VirtualRealityViewportOperator)
+    ui.register()
 
 
 def unregister():
     bpy.utils.unregister_class(VirtualRealityViewportOperator)
+    ui.unregister()
 
 
 if __name__ == '__main__':
