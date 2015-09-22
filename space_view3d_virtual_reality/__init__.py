@@ -51,6 +51,8 @@ from . import oculus
 
 from . import ui
 
+from . import sandbox
+
 def get_context_3dview (context):
     """returns area and space"""
     screen = context.screen
@@ -238,12 +240,14 @@ class VirtualRealityViewportOperator(bpy.types.Operator):
 
 def register():
     bpy.utils.register_class(VirtualRealityViewportOperator)
+    sandbox.register()
     ui.register()
 
 
 def unregister():
     bpy.utils.unregister_class(VirtualRealityViewportOperator)
     ui.unregister()
+    sandbox.unregister()
 
 
 if __name__ == '__main__':

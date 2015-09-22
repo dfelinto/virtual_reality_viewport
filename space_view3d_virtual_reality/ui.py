@@ -17,6 +17,9 @@ class VirtualRealityPanel(bpy.types.Panel):
         col = layout.column()
         col.operator("view3d.virtual_reality_toggle", text="Virtual Reality Preview", icon="PLAY")
 
+        col.separator()
+        col.operator("view3d.virtual_reality_sandbox", text="Sandbox", icon="PLAY")
+
 
 # ############################################################
 # Un/Registration
