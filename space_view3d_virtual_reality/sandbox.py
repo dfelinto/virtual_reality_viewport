@@ -49,7 +49,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
             self._timer = context.window_manager.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (self, context), 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
             self._init(self._width, self._height)
             return {'RUNNING_MODAL'}
 
@@ -279,7 +279,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         id_buf.to_list()[0] = gl_data.fb
         glDeleteFramebuffers(1, id_buf)
 
-    def _draw_callback_px(_self, self, context):
+    def _draw_callback_px(self, context):
         """core function"""
         self._fbo_visualize()
         self._debug_quad()
