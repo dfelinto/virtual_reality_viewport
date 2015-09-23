@@ -6,10 +6,23 @@ from .opengl_helper import (
         create_framebuffer,
         delete_framebuffer,
         draw_rectangle,
+        draw_rectangle_rainbow,
+        view_reset,
         view_setup,
         )
 
 from bgl import *
+
+
+class GLdata:
+    def __init__(self):
+        self.color_tex = -1
+        self.fb = -1
+        self.rb = -1
+        self.size = 0
+
+global _time
+_time = 0
 
 class VirtualRealitySandboxOperator(bpy.types.Operator):
     """"""
@@ -17,7 +30,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
     bl_label = "Toggle Virtual Reality Sandbox"
     bl_description = ""
 
-    _fbo = -1
+    _gl_data = None
     _timer = None
     _handle = None
     _width = 1920
@@ -29,17 +42,14 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == 'TIMER':
-            TODO # update FBO
-            print(self._fbo)
+            self._fbo_run()
 
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        TODO # check if oculus is connected
-
         if context.area.type == 'VIEW_3D':
             self._timer = context.window_manager.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (self, context), 'WINDOW', 'POST_VIEW')
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (self, context), 'WINDOW', 'POST_PIXEL')
             self._init(self._width, self._height)
             return {'RUNNING_MODAL'}
 
@@ -59,114 +69,220 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
             delete_framebuffer(self._fbo_id)
 
     def _init(self, width, height):
-        TODO #everything oculus related
-        # self._fbo = create_framebuffer(width, height)
+        self._gl_data = GLdata()
+        self._fbo_setup()
 
-        #self._testing_fbo()
+    def _fbo_setup(self):
+        gl_data = self._gl_data
+        size = 128
 
-    def _testing_fbo(self):
         id_buf = Buffer(GL_INT, 1)
 
-        #RGBA8 2D texture, 24 bit depth texture, 256x256
+        #RGBA8 2D texture, 24 bit depth texture, sizexsize
         glGenTextures(1, id_buf)
-        color_tex = id_buf.to_list()[0]
+        gl_data.color_tex = id_buf.to_list()[0]
 
-        glBindTexture(GL_TEXTURE_2D, color_tex)
+        glBindTexture(GL_TEXTURE_2D, gl_data.color_tex)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
         # NULL means reserve texture memory, but texels are undefined
-        null_buffer = Buffer(GL_BYTE, [(256 + 1) * (256 + 1) * 4])
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 256, 0, GL_BGRA, GL_UNSIGNED_BYTE, null_buffer)
+        null_buffer = Buffer(GL_BYTE, [(size + 1) * (size + 1) * 4])
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, size, 0, GL_BGRA, GL_UNSIGNED_BYTE, null_buffer)
 
-        #-------------------------
         glGenFramebuffers(1, id_buf)
-        fb = id_buf.to_list()[0]
-        glBindFramebuffer(GL_FRAMEBUFFER, fb)
+        gl_data.fb = id_buf.to_list()[0]
+        glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
 
         # Attach 2D texture to this FBO
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_data.color_tex, 0)
 
-        # -------------------------
         glGenRenderbuffers(1, id_buf)
-        depth_rb = id_buf.to_list()[0]
-        glBindRenderbuffer(GL_RENDERBUFFER, depth_rb)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 256, 256)
+        gl_data.depth_rb = id_buf.to_list()[0]
+        glBindRenderbuffer(GL_RENDERBUFFER, gl_data.depth_rb)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size)
 
-        # -------------------------
         # Attach depth buffer to FBO
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gl_data.depth_rb)
 
-        # -------------------------
         # Does the GPU support current FBO configuration?
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         if status == GL_FRAMEBUFFER_COMPLETE:
             print("FBO: good")
         else:
             print("FBO: error", status)
-            return
 
-        # -------------------------
-        # and now you can render to GL_TEXTURE_2D
-        glBindFramebuffer(GL_FRAMEBUFFER, fb)
-        glClearColor(1.0, 0.0, 0.0, 0.0)
+    def _draw_a_quad(self):
+        """
+        draw an animated quad on the screen
+        """
+        import time
+        import math
+
+        global _time
+
+        speed = 0.01
+
+        one = 1.0
+        zer = 0.0
+
+        _time, _int = math.modf(_time + speed)
+        factor = _time * 2.0
+
+        if factor > 1.0:
+            factor = 2.0 - factor;
+
+        one = one - factor;
+        zer = factor - zer;
+
+        glClearColor(1.0, 1.0, 1.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+        glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0)
+
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+        gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+
+        glEnable(GL_COLOR_MATERIAL)
+
+        glBegin(GL_QUADS)
+        glColor3f(one, zer, zer)
+        glVertex3f(-0.75, -0.75, 0.0)
+        glColor3f(zer, one, zer)
+        glVertex3f( 0.75, -0.75, 0.0)
+        glColor3f(zer, zer, one)
+        glVertex3f( 0.75,  0.75, 0.0)
+        glColor3f(one, one, zer)
+        glVertex3f(-0.75,  0.75, 0.0)
+        glEnd()
+
+        glMatrixMode(GL_PROJECTION)
+        glPopMatrix()
+
+        glMatrixMode(GL_MODELVIEW)
+        glPopMatrix()
+
+    def _fbo_run(self):
+        """
+        draw in the FBO
+        """
+        gl_data = self._gl_data
+
+        # setup
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, gl_data.fb)
+
+        viewport = Buffer(GL_INT, 4)
+        glGetIntegerv(GL_VIEWPORT, viewport)
+        glViewport(0, 0, gl_data.size, gl_data.size)
+
+        # actual drawing
+        self._draw_a_quad()
+
+        # unbinding
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+
+    def _fbo_visualize(self):
+        """
+        draw the FBO in a quad
+        """
+        gl_data = self._gl_data
+
+        viewport = Buffer(GL_INT, 4)
+        glGetIntegerv(GL_VIEWPORT, viewport)
+        glViewport(300, 200, 256, 256)
+        glScissor(300, 200, 256, 256)
+
+        glClearColor(0.0, 0.0, 0.0, 0.0)
         glClearDepth(1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # -------------------------
-        glViewport(0, 0, 256, 256)
         glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
         glLoadIdentity()
-        glOrtho(0.0, 256.0, 0.0, 256.0, -1.0, 1.0)
+
+        glMatrixMode(GL_TEXTURE)
+        glPushMatrix()
+        glLoadIdentity()
+
         glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
         glLoadIdentity()
 
-        # -------------------------
+        glOrtho(-1, 1, -1, 1, -20, 20)
+        gluLookAt(0.0, 0.0, 1.0,0.0,0.0, 0.0, 0.0,1.0,0.0)
+
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, gl_data.color_tex)
+
+        glColor3f(1.0, 1.0, 1.0)
+        glBegin(GL_QUADS)
+        glTexCoord3f(1.0, 1.0, 0.0)
+        glVertex2f( 1.0, 1.0)
+        glTexCoord3f(0.0, 1.0, 0.0)
+        glVertex2f(-1.0, 1.0)
+        glTexCoord3f(0.0, 0.0, 0.0)
+        glVertex2f(-1.0,-1.0)
+        glTexCoord3f(1.0, 0.0, 0.0)
+        glVertex2f( 1.0,-1.0)
+        glEnd()
+
+        glBindTexture(GL_TEXTURE_2D, 0)
         glDisable(GL_TEXTURE_2D)
-        glDisable(GL_BLEND)
-        glEnable(GL_DEPTH_TEST)
 
-        # -------------------------
-        view_setup()
-        draw_rectangle(zed=0.0)
+        glMatrixMode(GL_PROJECTION)
+        glPopMatrix()
 
-        pixels = Buffer(GL_FLOAT, [4])
-        #glReadPixels(0, 0, 4, 4, GL_BGRA, GL_UNSIGNED_BYTE, pixels)
-        for x in range(10):
-            for y in range(10):
-                glReadPixels(x * 10, y * 10, 1, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixels)
-                print(pixels)
+        glMatrixMode(GL_TEXTURE)
+        glPopMatrix()
 
-        TODO # THIS is the bit that is not working, or rather, FBO as a whole may not be working
+        glMatrixMode(GL_MODELVIEW)
+        glPopMatrix()
 
-        # pixels 0, 1, 2 should be white
-        # pixel 4 should be black
-        # ----------------
-        # Bind 0, which means render to back buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
+    def _debug_quad(self):
+        viewport = Buffer(GL_INT, 4)
+        glGetIntegerv(GL_VIEWPORT, viewport)
+        glViewport(300, 200, 256, 256)
 
-        # Delete resources
-        id_buf.to_list()[0] = color_tex
+        # actual drawing
+        self._draw_a_quad()
+
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+
+    def _fbo_delete(self):
+        """
+        cleanup FBO data
+        """
+        gl_data = self._gl_data
+        id_buf = Buffer(GL_INT, 1)
+
+        id_buf.to_list()[0] = gl_data.color_tex
         glDeleteTextures(1, id_buf)
 
-        id_buf.to_list()[0] = depth_rb
+        id_buf.to_list()[0] = gl_data.depth_rb
         glDeleteRenderbuffers(1, id_buf)
-        # Bind 0, which means render to back buffer, as a result, fb is unbound
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        id_buf.to_list()[0] = fb
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+
+        id_buf.to_list()[0] = gl_data.fb
         glDeleteFramebuffers(1, id_buf)
-
 
     def _draw_callback_px(_self, self, context):
         """core function"""
-        self._testing_fbo()
-        #view_setup()
-        #draw_rectangle()
+        self._fbo_visualize()
+        self._debug_quad()
 
 
 # ############################################################

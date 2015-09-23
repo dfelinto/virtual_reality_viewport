@@ -299,15 +299,32 @@ def view_reset(viewport):
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
 
+def draw_rectangle_rainbow(zed=0.0):
+    texco = [(1, 1), (0, 1), (0, 0), (1,0)]
+    verco = [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), ( 1.0, -1.0)]
+    colors = [(1.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 1.0, 0.0), (1.0, 1.0, 0.0, 0.0)]
+
+    glPolygonMode(GL_FRONT_AND_BACK , GL_FILL)
+
+    glBegin(GL_QUADS)
+    for i in range(4):
+        color = colors[i]
+        glColor4f(color[0], color[1], color[2], color[3])
+        glTexCoord3f(texco[i][0], texco[i][1], zed)
+        glVertex2f(verco[i][0], verco[i][1])
+    glEnd()
+
+
 def draw_rectangle(zed=0.0):
     texco = [(1, 1), (0, 1), (0, 0), (1,0)]
     verco = [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), ( 1.0, -1.0)]
 
     glPolygonMode(GL_FRONT_AND_BACK , GL_FILL)
 
+    glColor4f(1.0, 1.0, 1.0, 0.0)
+
     glBegin(GL_QUADS)
     for i in range(4):
-        glColor4f(1.0, 1.0, 1.0, 0.0)
         glTexCoord3f(texco[i][0], texco[i][1], zed)
         glVertex2f(verco[i][0], verco[i][1])
     glEnd()
