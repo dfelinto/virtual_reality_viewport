@@ -41,32 +41,42 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         return True
 
     def modal(self, context, event):
+        if event.type in {'ESC'}:
+            self._quit(context)
+            context.area.tag_redraw()
+            return {'FINISHED'}
+
         if event.type == 'TIMER':
             self._fbo_run()
+            # this redraw is only required for the visualization
+            context.area.tag_redraw()
 
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
+        wm = context.window_manager
+
         if context.area.type == 'VIEW_3D':
-            self._timer = context.window_manager.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
+            self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
             self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
+            wm.modal_handler_add(self)
             self._init(self._width, self._height)
             return {'RUNNING_MODAL'}
 
         return {'CANCELLED'}
 
-    def _quit(self):
+    def _quit(self, context):
         """garbage collect"""
         if self._timer:
-            context.window_manager.event_timer_remove(self._timer)
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
             del self._timer
 
         if self._handle:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             del self._handle
 
-        if self._fbo != -1:
-            delete_framebuffer(self._fbo_id)
+        self._fbo_delete()
 
     def _init(self, width, height):
         self._gl_data = GLdata()
@@ -113,7 +123,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         if status == GL_FRAMEBUFFER_COMPLETE:
-            print("FBO: good")
+            print("FBO: good :)")
         else:
             print("FBO: error", status)
 
@@ -179,7 +189,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         gl_data = self._gl_data
 
         # setup
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, gl_data.fb)
+        glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
 
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
@@ -189,7 +199,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         self._draw_a_quad()
 
         # unbinding
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
     def _fbo_visualize(self):
@@ -274,7 +284,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         id_buf.to_list()[0] = gl_data.depth_rb
         glDeleteRenderbuffers(1, id_buf)
 
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         id_buf.to_list()[0] = gl_data.fb
         glDeleteFramebuffers(1, id_buf)
