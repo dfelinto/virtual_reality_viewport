@@ -205,6 +205,9 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glLoadIdentity()
         gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
+        current_color = Buffer(GL_FLOAT, 4)
+        glGetFloatv(GL_CURRENT_COLOR, current_color);
+
         glEnable(GL_COLOR_MATERIAL)
 
         glBegin(GL_QUADS)
@@ -217,6 +220,9 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glColor3f(one, one, zer)
         glVertex3f(-0.75,  0.75, 0.0)
         glEnd()
+
+        glColor4fv(current_color)
+        glDisable(GL_COLOR_MATERIAL)
 
         glMatrixMode(GL_PROJECTION)
         glPopMatrix()
@@ -249,6 +255,9 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         draw the FBO in a quad
         """
         gl_data = self._gl_data
+
+        current_color = Buffer(GL_FLOAT, 4)
+        glGetFloatv(GL_CURRENT_COLOR, current_color);
 
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
@@ -289,8 +298,10 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glVertex2f( 1.0,-1.0)
         glEnd()
 
-        glBindTexture(GL_TEXTURE_2D, 0)
+        glColor4fv(current_color)
+
         glDisable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, 0)
 
         glMatrixMode(GL_PROJECTION)
         glPopMatrix()
