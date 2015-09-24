@@ -165,7 +165,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         if status == GL_FRAMEBUFFER_COMPLETE:
-            print("FBO: good :)")
+            print("FBO: good: {0} : {1} : {2}".format(gl_data.color_tex, gl_data.depth_rb, gl_data.fb))
         else:
             print("FBO: error", status)
 
