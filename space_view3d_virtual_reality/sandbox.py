@@ -130,6 +130,12 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
 
         id_buf = Buffer(GL_INT, 1)
 
+        act_fbo = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_FRAMEBUFFER, act_fbo)
+
+        act_tex = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
+
         #RGBA8 2D texture, 24 bit depth texture, sizexsize
         glGenTextures(1, id_buf)
         gl_data.color_tex = id_buf.to_list()[0]
@@ -143,6 +149,8 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         # NULL means reserve texture memory, but texels are undefined
         null_buffer = Buffer(GL_BYTE, [(size + 1) * (size + 1) * 4])
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, size, 0, GL_BGRA, GL_UNSIGNED_BYTE, null_buffer)
+
+        glBindTexture(GL_TEXTURE_2D, act_tex[0])
 
         glGenFramebuffers(1, id_buf)
         gl_data.fb = id_buf.to_list()[0]
@@ -162,7 +170,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         # Does the GPU support current FBO configuration?
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, act_fbo[0])
 
         if status == GL_FRAMEBUFFER_COMPLETE:
             print("FBO: good: {0} : {1} : {2}".format(gl_data.color_tex, gl_data.depth_rb, gl_data.fb))
@@ -236,6 +244,9 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         """
         gl_data = self._gl_data
 
+        act_fbo = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_FRAMEBUFFER, act_fbo)
+
         # setup
         glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
 
@@ -247,8 +258,8 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         self._draw_a_quad()
 
         # unbinding
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+        glBindFramebuffer(GL_FRAMEBUFFER, act_fbo[0])
 
     def _fbo_visualize(self):
         """
@@ -258,6 +269,9 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
 
         current_color = Buffer(GL_FLOAT, 4)
         glGetFloatv(GL_CURRENT_COLOR, current_color);
+
+        act_tex = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
 
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
@@ -301,7 +315,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glColor4fv(current_color)
 
         glDisable(GL_TEXTURE_2D)
-        glBindTexture(GL_TEXTURE_2D, 0)
+        glBindTexture(GL_TEXTURE_2D, act_tex[0])
 
         glMatrixMode(GL_PROJECTION)
         glPopMatrix()
@@ -313,16 +327,19 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glPopMatrix()
 
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+        glScissor(viewport[0], viewport[1], viewport[2], viewport[3])
 
     def _debug_quad(self):
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
         glViewport(300, 200, 256, 256)
+        glScissor(300, 200, 256, 256)
 
         # actual drawing
         self._draw_a_quad()
 
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+        glScissor(viewport[0], viewport[1], viewport[2], viewport[3])
 
     def _fbo_delete(self):
         """
@@ -336,8 +353,6 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
 
         id_buf.to_list()[0] = gl_data.depth_rb
         glDeleteRenderbuffers(1, id_buf)
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         id_buf.to_list()[0] = gl_data.fb
         glDeleteFramebuffers(1, id_buf)
