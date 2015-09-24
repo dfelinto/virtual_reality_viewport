@@ -1,5 +1,7 @@
 import bpy
 
+from bpy.app.handlers import persistent
+
 TODO = True
 
 from .opengl_helper import (
@@ -36,13 +38,24 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
     _width = 1920
     _height = 1080
 
+    action = bpy.props.EnumProperty(
+        description="",
+        items=(("ENABLE", "Enable", "Enable"),
+               ("DISABLE", "Disable", "Disable"),
+               ),
+        default="DISABLE",
+        options={'SKIP_SAVE'},
+        )
+
     @classmethod
     def poll(cls, context):
-        return True
+        return context.area.type == 'VIEW_3D'
 
     def modal(self, context, event):
-        if event.type in {'ESC'}:
-            self._quit(context)
+        wm = context.window_manager
+
+        if not wm.virtual_reality.is_enabled:
+            self._quit_doit(context)
             context.area.tag_redraw()
             return {'FINISHED'}
 
@@ -55,20 +68,40 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
+        vr = wm.virtual_reality
 
-        if context.area.type == 'VIEW_3D':
-            self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
-            wm.modal_handler_add(self)
-            self._init(self._width, self._height)
+        is_enabled = vr.is_enabled
+
+        if self.action == 'DISABLE':
+            if vr.is_enabled:
+                self._quit(context)
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, "Virtual Reality is not enabled")
+                return {'CANCELLED'}
+
+        else: # ENABLE
+            if vr.is_enabled:
+                self.report({'ERROR'}, "Virtual Reality is already enabled")
+                return {'CANCELLED'}
+
+            self._init(context, self._width, self._height)
             return {'RUNNING_MODAL'}
 
         return {'CANCELLED'}
 
     def _quit(self, context):
         """garbage collect"""
+
+        # change it so the original modal operator will clean things up
+        wm = context.window_manager
+        wm.virtual_reality.is_enabled = False
+
+    def _quit_doit(self, context):
+        """actual quit"""
+        wm = context.window_manager
+
         if self._timer:
-            wm = context.window_manager
             wm.event_timer_remove(self._timer)
             del self._timer
 
@@ -78,7 +111,16 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
 
         self._fbo_delete()
 
-    def _init(self, width, height):
+    def _init(self, context, width, height):
+        wm = context.window_manager
+        wm.virtual_reality.is_enabled = True
+
+        # setup modal
+        self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
+        self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
+        wm.modal_handler_add(self)
+
+        # initialize opengl data
         self._gl_data = GLdata()
         self._fbo_setup()
 
@@ -334,15 +376,54 @@ Final Oculus Implementation
 * submit frame to oculus
 """
 
+# ############################################################
+# Global Properties
+# ############################################################
+
+class VirtualRealityInfo(bpy.types.PropertyGroup):
+    is_enabled = bpy.props.BoolProperty(
+            name="Enabled",
+            default=False,
+            )
+
+# ############################################################
+# Un/Registration
+# ############################################################
+
+@persistent
+def virtual_reality_load_pre(dummy):
+    wm = bpy.context.window_manager
+    wm.virtual_reality.is_enabled = False
+
+
+@persistent
+def virtual_reality_load_post(dummy):
+    wm = bpy.context.window_manager
+    wm.virtual_reality.is_enabled = False
+
 
 # ############################################################
 # Un/Registration
 # ############################################################
 
 def register():
+    bpy.app.handlers.load_pre.append(virtual_reality_load_pre)
+    bpy.app.handlers.load_pre.append(virtual_reality_load_post)
+
     bpy.utils.register_class(VirtualRealitySandboxOperator)
+    bpy.utils.register_class(VirtualRealityInfo)
+    bpy.types.WindowManager.virtual_reality = bpy.props.PointerProperty(
+            name="virtual_reality",
+            type=VirtualRealityInfo,
+            options={'HIDDEN'},
+            )
 
 
 def unregister():
+    bpy.app.handlers.load_pre.remove(virtual_reality_load_pre)
+    bpy.app.handlers.load_pre.remove(virtual_reality_load_post)
+
     bpy.utils.unregister_class(VirtualRealitySandboxOperator)
+    del bpy.types.WindowManager.virtual_reality
+    bpy.utils.unregister_class(VirtualRealityInfo)
 

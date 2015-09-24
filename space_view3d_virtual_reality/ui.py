@@ -18,7 +18,12 @@ class VirtualRealityPanel(bpy.types.Panel):
         col.operator("view3d.virtual_reality_toggle", text="Virtual Reality Preview", icon="PLAY")
 
         col.separator()
-        col.operator("view3d.virtual_reality_sandbox", text="Sandbox", icon="PLAY")
+        wm = context.window_manager
+
+        if wm.virtual_reality.is_enabled:
+            col.operator("view3d.virtual_reality_sandbox", text="Virtual Reality", icon="X").action='DISABLE'
+        else:
+            col.operator("view3d.virtual_reality_sandbox", text="Virtual Reality", icon="PLAY").action='ENABLE'
 
 
 # ############################################################
