@@ -104,6 +104,7 @@ def update_image(tex_id, viewport, target=GL_RGBA, texture=GL_TEXTURE0):
     glActiveTexture(texture)
     glBindTexture(GL_TEXTURE_2D, tex_id)
     glCopyTexImage2D(GL_TEXTURE_2D, 0, target, viewport[0], viewport[1], viewport[2], viewport[3], 0)
+    glBindTexture(GL_TEXTURE_2D, 0)
 
 
 def create_image(width, height, target=GL_RGBA):

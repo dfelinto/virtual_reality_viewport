@@ -5,10 +5,13 @@ from bpy.app.handlers import persistent
 TODO = True
 
 from .opengl_helper import (
+        calculate_image_size,
         create_framebuffer,
+        create_image,
         delete_framebuffer,
         draw_rectangle,
         draw_rectangle_rainbow,
+        update_image,
         view_reset,
         view_setup,
         )
@@ -22,6 +25,7 @@ class GLdata:
         self.fb = -1
         self.rb = -1
         self.size = 0
+        self.debug_color_id = 0
 
 global _time
 _time = 0
@@ -110,6 +114,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
             del self._handle
 
         self._fbo_delete()
+        self._debug_texture_delete()
 
     def _init(self, context, width, height):
         wm = context.window_manager
@@ -123,6 +128,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         # initialize opengl data
         self._gl_data = GLdata()
         self._fbo_setup()
+        self._debug_texture_setup(context)
 
     def _fbo_setup(self):
         gl_data = self._gl_data
@@ -201,6 +207,7 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         zer = factor - zer;
 
         glClearColor(1.0, 1.0, 1.0, 1.0)
+        glClearDepth(1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glMatrixMode(GL_PROJECTION)
@@ -248,18 +255,47 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         glGetIntegerv(GL_FRAMEBUFFER, act_fbo)
 
         # setup
-        glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
-
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
         glViewport(0, 0, gl_data.size, gl_data.size)
 
+        glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
+        glActiveTexture(GL_TEXTURE0)
+
         # actual drawing
-        self._draw_a_quad()
+        #self._draw_a_quad()
+
+        glClearColor(1.0, 0.0, 0.0, 1.0)
+        glClearDepth(1.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        act_tex = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
+
+        glDisable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LESS)
+
+        # actual drawing
+        view_setup()
+
+        glEnable(GL_TEXTURE_2D)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, gl_data.debug_color_id)
+
+        draw_rectangle()
+        glBindTexture(GL_TEXTURE_2D, act_tex[0])
+
+
+        glActiveTexture(0)
+        glDisable(GL_TEXTURE_2D)
+        glDisable(GL_DEPTH_TEST)
+
+        view_reset(viewport)
 
         # unbinding
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
         glBindFramebuffer(GL_FRAMEBUFFER, act_fbo[0])
+
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
     def _fbo_visualize(self):
         """
@@ -357,10 +393,64 @@ class VirtualRealitySandboxOperator(bpy.types.Operator):
         id_buf.to_list()[0] = gl_data.fb
         glDeleteFramebuffers(1, id_buf)
 
+    def _debug_texture_delete(self):
+        gl_data = self._gl_data
+        id_buf = Buffer(GL_INT, 1)
+
+        id_buf.to_list()[0] = gl_data.debug_color_id
+        glDeleteTextures(1, id_buf)
+
+    def _debug_texture_setup(self, context):
+        gl_data = self._gl_data
+
+        width, height = calculate_image_size(context.region.width, context.region.height)
+        gl_data.debug_color_id = create_image(width, height)
+
+    def _debug_texture_draw(self):
+        gl_data = self._gl_data
+        color_id = gl_data.debug_color_id
+
+        act_tex = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
+
+        # draw a textured quad from viewport image to it 
+        viewport = Buffer(GL_INT, 4)
+        glGetIntegerv(GL_VIEWPORT, viewport)
+
+        update_image(color_id, viewport, GL_RGBA, GL_TEXTURE0)
+
+        glViewport(600, 200, 256, 256)
+        glScissor(600, 200, 256, 256)
+
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LESS)
+
+        # actual drawing
+        view_setup()
+
+        glEnable(GL_TEXTURE_2D)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, gl_data.color_tex)
+        glBindTexture(GL_TEXTURE_2D, color_id)
+
+        draw_rectangle()
+        glBindTexture(GL_TEXTURE_2D, act_tex[0])
+
+
+        glActiveTexture(0)
+        glDisable(GL_TEXTURE_2D)
+        glDisable(GL_DEPTH_TEST)
+
+        view_reset(viewport)
+
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+        glScissor(viewport[0], viewport[1], viewport[2], viewport[3])
+
     def _draw_callback_px(self, context):
         """core function"""
         self._fbo_visualize()
-        self._debug_quad()
+        #self._debug_quad()
+        self._debug_texture_draw()
 
 
 # ############################################################
