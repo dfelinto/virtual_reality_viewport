@@ -13,10 +13,14 @@ TODO = False
 
 from . import HMD_Data
 
+from ..lib import (
+        checkModule,
+        )
+
 class Oculus:
     def __init__(self):
-        self.checkModule('oculus_bridge')
         self._device = None
+        checkModule('oculus_sdk_bridge')
 
     def isConnected(self):
         """
@@ -25,20 +29,14 @@ class Oculus:
         :return: return True if the device is connected
         :rtype: bool
         """
-        import bridge
+        from bridge import OculusBridge
 
         try:
-            return bridge.isConnected()
+            return OculusBridge.isConnected()
 
         except Exception as E:
             print(E)
             return False
-
-        """
-        Oculus SDK bridge
-
-        return: true/false
-        """
 
     def init(self):
         """
@@ -84,17 +82,4 @@ class Oculus:
 
         delete fbo, rbo, tex_id
         """
-
-    def checkModule(self, path):
-        """
-        If library exists append it to sys.path
-        """
-        import sys
-        import os
-
-        addon_path = os.path.dirname(os.path.abspath(__file__))
-        library_path = os.path.join(addon_path, "lib", path)
-
-        if library_path not in sys.path:
-            sys.path.append(library_path)
 

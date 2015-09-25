@@ -7,20 +7,9 @@ TODO = True
 from .preview import Preview
 from .hmd import HMD
 
-
-# ############################################################
-# Util Functions
-# ############################################################
-
-def getAddonName():
-    return __name__.split('.')[0]
-
-
-def getDisplayBackend(context):
-    """preference set in the addon"""
-    addon = getAddonName()
-    preferences = context.user_preferences.addons[addon].preferences
-    return preferences.display_backend
+from .lib import (
+        getDisplayBackend,
+        )
 
 
 # ############################################################
