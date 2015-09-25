@@ -9,7 +9,7 @@ The bridge code is hosted at Visgraf:
 http://git.impa.br/dfelinto/oculus_sdk_bridge
 """
 
-TODO = True
+TODO = False
 
 from . import HMD_Data
 
@@ -24,7 +24,7 @@ class Oculus:
         :return: return True if the device is connected
         :rtype: bool
         """
-        TODO
+        return TODO
         """
         Oculus SDK bridge
 
@@ -38,7 +38,7 @@ class Oculus:
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        TODO
+        return TODO
         """
         Oculus SDK bridge
 

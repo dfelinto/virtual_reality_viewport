@@ -78,9 +78,7 @@ class Preview:
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
 
-        update_image(texture, viewport, GL_RGBA, GL_TEXTURE0)
-
-        glViewport(offset[0], offse[1], width, height)
+        glViewport(offset[0], offset[1], width, height)
         glScissor(offset[0], offset[1], width, height)
 
         glEnable(GL_DEPTH_TEST)

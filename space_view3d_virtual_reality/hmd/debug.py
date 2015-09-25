@@ -7,6 +7,13 @@ Debug device for testing
 
 from . import HMD_Data
 
+VERBOSE = False
+
+def print_debug(*args):
+    if VERBOSE:
+        print("Debug: {0}".format(*args))
+
+
 class Debug:
     def __init__(self):
         self._device = None
@@ -18,7 +25,7 @@ class Debug:
         :return: return True if the device is connected
         :rtype: bool
         """
-        print('Debug:isConnected()')
+        print_debug('isConnected()')
         return True
 
     def init(self):
@@ -28,24 +35,28 @@ class Debug:
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        print('Debug:init()')
+        print_debug('init()')
+
+        self._width = 512
+        self._height = 512
+
         return True
 
     def loop(self):
         """
         Get fresh tracking data
         """
-        print('Debug:loop()')
+        print_debug('loop()')
 
     def frameReady(self):
         """
         The frame is ready to be send to the device
         """
-        print('Debug:frameReady()')
+        print_debug('frameReady()')
 
     def quit(self):
         """
         Garbage collection
         """
-        print('Debug:quit()')
+        print_debug('quit()')
 

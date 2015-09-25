@@ -135,16 +135,17 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._preview = Preview()
 
         if self._hmd.isConnected():
-            self._hmd.init()
+            if self._hmd.init():
+                # get the data from device
+                width = self._hmd.width
+                height = self._hmd.height
+                texture = self._hmd.texture
 
-            # get the data from device
-            width = self._hmd.width
-            height = self._hmd.height
-            texture = self._hmd.texture
+                self._preview.init(width, height, texture)
 
-            self._preview.init(width, height, texture)
-        else:
-            return False
+                return True
+
+        return False
 
     def loop(self):
         """
@@ -182,7 +183,7 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
 
     use_preview = bpy.props.BoolProperty(
             name="Preview",
-            default=True,
+            default=False,
             )
 
 # ############################################################
