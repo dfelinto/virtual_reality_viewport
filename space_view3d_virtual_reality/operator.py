@@ -92,6 +92,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 return {'RUNNING_MODAL'}
             else:
                 # quit right away
+                wm.virtual_reality.is_enabled = False
                 self._quit(context)
                 self.report({'ERROR'}, "Error initializing device")
 
@@ -125,27 +126,29 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         wm = context.window_manager
         wm.virtual_reality.is_enabled = True
 
+        display_backend = getDisplayBackend(context)
+        self._hmd = HMD(display_backend)
+        self._preview = Preview()
+
+        if not self._hmd.isConnected():
+            return False
+
+        if not self._hmd.init():
+            return False
+
+        # get the data from device
+        width = self._hmd.width
+        height = self._hmd.height
+        texture = self._hmd.texture
+
+        self._preview.init(width, height, texture)
+
         # setup modal
         self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
         self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
         wm.modal_handler_add(self)
 
-        display_backend = getDisplayBackend(context)
-        self._hmd = HMD(display_backend)
-        self._preview = Preview()
-
-        if self._hmd.isConnected():
-            if self._hmd.init():
-                # get the data from device
-                width = self._hmd.width
-                height = self._hmd.height
-                texture = self._hmd.texture
-
-                self._preview.init(width, height, texture)
-
-                return True
-
-        return False
+        return True
 
     def loop(self):
         """

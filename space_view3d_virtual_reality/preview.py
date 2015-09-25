@@ -41,15 +41,7 @@ class Preview:
         """
         Destroy preview window
         """
-
-    def _delete(self):
-        """
-        OpenGL garbage collector
-        """
-        id_buf = Buffer(GL_INT, 1)
-        id_buf.to_list()[0] = self._texture
-        glDeleteTextures(1, id_buf)
-        self.delete()
+        pass
 
     def update(self, width, height):
         """
