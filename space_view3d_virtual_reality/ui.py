@@ -1,5 +1,6 @@
 import bpy
 
+
 # ############################################################
 # User Interface
 # ############################################################
@@ -13,17 +14,17 @@ class VirtualRealityPanel(bpy.types.Panel):
     @staticmethod
     def draw(self, context):
         layout = self.layout
+        wm = context.window_manager
+        vr = wm.virtual_reality
 
         col = layout.column()
-        col.operator("view3d.virtual_reality_toggle", text="Virtual Reality Preview", icon="PLAY")
 
-        col.separator()
-        wm = context.window_manager
-
-        if wm.virtual_reality.is_enabled:
-            col.operator("view3d.virtual_reality_sandbox", text="Virtual Reality", icon="X").action='DISABLE'
+        if not vr.is_enabled:
+            col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="PLAY").action='ENABLE'
         else:
-            col.operator("view3d.virtual_reality_sandbox", text="Virtual Reality", icon="PLAY").action='ENABLE'
+            col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="X").action='DISABLE'
+            col.separator()
+            col.prop(vr, "use_preview")
 
 
 # ############################################################
