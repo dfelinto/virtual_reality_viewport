@@ -11,15 +11,15 @@ http://git.impa.br/dfelinto/oculus_sdk_bridge
 
 TODO = False
 
-from . import HMD_Data
+from . import HMD_Base, HMD_Data
 
 from ..lib import (
         checkModule,
         )
 
-class Oculus:
+class Oculus(HMD_Base):
     def __init__(self):
-        self._device = None
+        super(Oculus, self).__init__('Oculus')
         checkModule('oculus_sdk_bridge')
 
     def isConnected(self):

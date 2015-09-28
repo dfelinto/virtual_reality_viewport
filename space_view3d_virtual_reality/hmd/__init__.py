@@ -7,6 +7,36 @@ from mathutils import (
         )
 
 
+# ############################################################
+# Data structs
+# ############################################################
+
+def HMD(display_backend):
+    """
+    return the head mounted display device class
+    (defined in another file)
+
+    :param display_backend: asdasd
+    :type display_backend: str
+    """
+    from .oculus import Oculus
+    from .debug import Debug
+
+    displays = {
+            'OCULUS':Oculus,
+            'DEBUG':Debug,
+            }
+
+    if display_backend not in displays:
+        assert False, "Display Backend \"{0}\" not implemented".format(display_backend)
+
+    return displays[display_backend]()
+
+
+# ############################################################
+# Data structs
+# ############################################################
+
 class HMD_Data:
     status = None
     projection_matrix = Matrix()
@@ -18,20 +48,24 @@ class HMD_Data:
     texture = 0
 
 
-class HMD:
+# ############################################################
+# Base class inherited by HMD devices
+# ############################################################
+
+class HMD_Base:
     __slots__ = {
-        "_device",
-        "_projection_matrix",
-        "_modelview_matrix",
-        "_interpupillary_distance",
-        "_width",
-        "_height",
         "_fbo",
+        "_height",
+        "_interpupillary_distance",
+        "_modelview_matrix",
+        "_name",
+        "_projection_matrix",
         "_texture",
+        "_width",
         }
 
-    def __init__(self, display_backend):
-        self._device = None
+    def __init__(self, name):
+        self._name = name
         self._projection_matrix = Matrix()
         self._modelview_matrix = Matrix()
         self._interpupillary_distance = Vector((0.0, 0.0))
@@ -39,17 +73,6 @@ class HMD:
         self._height = 0
         self._fbo = 0
         self._texture = 0
-
-        from .oculus import Oculus
-        from .debug import Debug
-
-        displays = {
-                'OCULUS':Oculus,
-                'DEBUG':Debug,
-                }
-
-        assert(display_backend in displays)
-        self._device = displays[display_backend]()
 
     @property
     def fbo(self):
@@ -73,7 +96,8 @@ class HMD:
 
     @property
     def modelview_matrix(self):
-        return TODO
+        TODO # calculate
+        return self._modelview_matrix
 
     def isConnected(self):
         """
@@ -82,7 +106,7 @@ class HMD:
         :return: return True if the device is connected
         :rtype: bool
         """
-        return self._device.isConnected()
+        assert False, "isConnected() not implemented for the \"{0}\" device".format(self._name)
 
     def init(self):
         """
@@ -91,23 +115,23 @@ class HMD:
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        return self._device.init()
+        assert False, "init() not implemented for the \"{0}\" device".format(self._name)
 
     def loop(self):
         """
         Get fresh tracking data
         """
-        return self._device.loop()
+        assert False, "loop() not implemented for the \"{0}\" device".format(self._name)
 
     def frameReady(self):
         """
         The frame is ready to be send to the device
         """
-        return self._device.frameReady()
+        assert False, "frameReady() not implemented for the \"{0}\" device".format(self._name)
 
     def quit(self):
         """
         Garbage collection
         """
-        return self._device.quit()
+        assert False, "quit() not implemented for the \"{0}\" device".format(self._name)
 
