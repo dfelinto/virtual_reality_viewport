@@ -28,6 +28,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _handle = None
     _width = 1920
     _height = 1080
+    _area_hash = -1
 
     action = bpy.props.EnumProperty(
         description="",
@@ -45,17 +46,23 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     def modal(self, context, event):
         wm = context.window_manager
         vr = wm.virtual_reality
+        area = context.area
+
+        if not area:
+            self.quit(context)
+            self._quit(context)
+            return {'FINISHED'}
 
         if not vr.is_enabled:
             self._quit(context)
-            context.area.tag_redraw()
+            area.tag_redraw()
             return {'FINISHED'}
 
         if event.type == 'TIMER':
             self.loop()
 
-            if vr.preview_scale:
-                context.area.tag_redraw()
+            if vr.preview_scale and context.area:
+                area.tag_redraw()
 
         return {'PASS_THROUGH'}
 
@@ -110,7 +117,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._preview.quit()
 
         # cleanup viewport
-        context.area.tag_redraw()
+        if context.area:
+            context.area.tag_redraw()
 
     def init(self, context):
         """
@@ -135,6 +143,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         texture = self._hmd.texture
 
         self._preview.init(texture, width, height)
+        self._area_hash = hash(context.area)
 
         # setup modal
         self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
@@ -164,10 +173,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
     def _draw_callback_px(self, context):
         """callback function, run every time the viewport is refreshed"""
-        wm = context.window_manager
-        vr = wm.virtual_reality
 
-        self._preview.loop(vr.preview_scale)
+        if self._area_hash == hash(context.area):
+            wm = context.window_manager
+            vr = wm.virtual_reality
+            self._preview.loop(vr.preview_scale)
 
 
 # ############################################################
