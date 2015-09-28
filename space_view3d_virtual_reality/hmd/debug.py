@@ -18,10 +18,6 @@ class Debug(HMD_Base):
     def __init__(self):
         super(Debug, self).__init__('Debug')
 
-    @property
-    def texture(self):
-        return self._fbo._gl_data.color_tex
-
     def isConnected(self):
         """
         Check if device is connected
@@ -44,48 +40,38 @@ class Debug(HMD_Base):
         self._width = 1024
         self._height = 512
 
-        self._fbo = FBO(self._width, self._height)
-
-
-        return True
+        return super(Debug, self).init()
 
     def loop(self):
         """
         Get fresh tracking data
         """
         print_debug('loop()')
+        debug_draw(self._offscreen_object, self._width, self._height)
 
     def frameReady(self):
         """
         The frame is ready to be send to the device
         """
-        self._fbo.run()
         print_debug('frameReady()')
 
     def quit(self):
         """
         Garbage collection
         """
-        self._fbo.delete()
         print_debug('quit()')
+        return super(Debug, self).quit()
+
+
+# ##################
+# Debug Debug Debug
+# ##################
 
 from bgl import *
 
 
 global _time
 _time = 0
-
-# ##################
-# Data struct
-# ##################
-
-class GLdata:
-    def __init__(self):
-        self.color_tex = -1
-        self.fb = -1
-        self.rb = -1
-        self.width = 0
-        self.height = 0
 
 
 # ##################
@@ -122,217 +108,90 @@ def view_reset():
 
 
 # ##################
-# FBO related routines
+# Draw an animated cube on the offscreen object
 # ##################
 
-class FBO:
-    __slots__ = {
-            "_gl_data",
-            }
+def debug_draw(offscreen_object, width, height):
+    """
+    draw in the FBO
+    """
+    import time
+    import math
+    import gpu
 
-    def __init__(self, width, height):
+    global _time
 
-        # initialize opengl data
-        self._gl_data = GLdata()
+    # setup
+    viewport = Buffer(GL_INT, 4)
+    glGetIntegerv(GL_VIEWPORT, viewport)
+    glViewport(0, 0, width, height)
 
-        # initialize fbo
-        self.setup(width, height)
+    gpu.offscreen_object_bind(offscreen_object, True)
 
-    def setup(self, width, height):
-        gl_data = self._gl_data
-        gl_data.width = width
-        gl_data.height = height
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+    glClearDepth(1.0)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        id_buf = Buffer(GL_INT, 1)
+    glDisable(GL_DEPTH_TEST)
+    glDepthFunc(GL_LESS)
 
-        act_fbo = Buffer(GL_INT, 1)
-        glGetIntegerv(GL_FRAMEBUFFER, act_fbo)
+    view_setup()
 
-        act_tex = Buffer(GL_INT, 1)
-        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
+    # actual drawing
+    speed = 0.01
 
-        #RGBA8 2D texture, 24 bit depth texture, width x height
-        glGenTextures(1, id_buf)
-        gl_data.color_tex = id_buf.to_list()[0]
+    one = 1.0
+    zer = 0.0
 
-        glBindTexture(GL_TEXTURE_2D, gl_data.color_tex)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    _time, _int = math.modf(_time + speed)
+    factor = _time * 2.0
 
-        # NULL means reserve texture memory, but texels are undefined
-        null_buffer = Buffer(GL_BYTE, [(gl_data.width + 1) * (gl_data.height + 1) * 4])
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, gl_data.width, gl_data.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, null_buffer)
+    if factor > 1.0:
+        factor = 2.0 - factor;
 
-        glBindTexture(GL_TEXTURE_2D, act_tex[0])
+    one = one - factor;
+    zer = factor - zer;
 
-        glGenFramebuffers(1, id_buf)
-        gl_data.fb = id_buf.to_list()[0]
-        glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
+    glMatrixMode(GL_PROJECTION)
+    glPushMatrix()
+    glLoadIdentity()
+    glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0)
 
-        # Attach 2D texture to this FBO
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_data.color_tex, 0)
+    glMatrixMode(GL_MODELVIEW)
+    glPushMatrix()
+    glLoadIdentity()
+    gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-        glGenRenderbuffers(1, id_buf)
-        gl_data.depth_rb = id_buf.to_list()[0]
-        glBindRenderbuffer(GL_RENDERBUFFER, gl_data.depth_rb)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, gl_data.width, gl_data.height)
+    current_color = Buffer(GL_FLOAT, 4)
+    glGetFloatv(GL_CURRENT_COLOR, current_color);
 
-        # Attach depth buffer to FBO
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gl_data.depth_rb)
+    glEnable(GL_COLOR_MATERIAL)
 
-        # Does the GPU support current FBO configuration?
-        status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+    glBegin(GL_QUADS)
+    glColor3f(one, zer, zer)
+    glVertex3f(-0.75, -0.75, 0.0)
+    glColor3f(zer, one, zer)
+    glVertex3f( 0.75, -0.75, 0.0)
+    glColor3f(zer, zer, one)
+    glVertex3f( 0.75,  0.75, 0.0)
+    glColor3f(one, one, zer)
+    glVertex3f(-0.75,  0.75, 0.0)
+    glEnd()
 
-        glBindFramebuffer(GL_FRAMEBUFFER, act_fbo[0])
+    glColor4fv(current_color)
+    glDisable(GL_COLOR_MATERIAL)
 
-        if status == GL_FRAMEBUFFER_COMPLETE:
-            print("FBO: good: {0} : {1} : {2}".format(gl_data.color_tex, gl_data.depth_rb, gl_data.fb))
-        else:
-            print("FBO: error", status)
+    glMatrixMode(GL_PROJECTION)
+    glPopMatrix()
 
+    glMatrixMode(GL_MODELVIEW)
+    glPopMatrix()
 
-    def run(self):
-        """
-        draw in the FBO
-        """
-        gl_data = self._gl_data
+    glDisable(GL_DEPTH_TEST)
 
-        act_fbo = Buffer(GL_INT, 1)
-        glGetIntegerv(GL_FRAMEBUFFER, act_fbo)
+    view_reset()
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
-        # setup
-        viewport = Buffer(GL_INT, 4)
-        glGetIntegerv(GL_VIEWPORT, viewport)
-        glViewport(0, 0, gl_data.width, gl_data.height)
-
-        glBindFramebuffer(GL_FRAMEBUFFER, gl_data.fb)
-        glActiveTexture(GL_TEXTURE0)
-
-        glClearColor(1.0, 1.0, 1.0, 1.0)
-        glClearDepth(1.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        act_tex = Buffer(GL_INT, 1)
-        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
-
-        glDisable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LESS)
-
-        # actual drawing
-        view_setup()
-
-        glEnable(GL_TEXTURE_2D)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, gl_data.color_tex)
-
-        # actual drawing
-        self._draw_a_quad()
-
-        glBindTexture(GL_TEXTURE_2D, act_tex[0])
-
-        glDisable(GL_TEXTURE_2D)
-        glDisable(GL_DEPTH_TEST)
-
-        view_reset()
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
-
-        # unbinding
-        glBindFramebuffer(GL_FRAMEBUFFER, act_fbo[0])
-
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
-
-    def _draw_a_quad(self):
-        """
-        draw an animated quad on the screen
-        """
-        import time
-        import math
-
-        global _time
-
-        speed = 0.01
-
-        one = 1.0
-        zer = 0.0
-
-        _time, _int = math.modf(_time + speed)
-        factor = _time * 2.0
-
-        if factor > 1.0:
-            factor = 2.0 - factor;
-
-        one = one - factor;
-        zer = factor - zer;
-
-        glClearColor(1.0, 1.0, 1.0, 1.0)
-        glClearDepth(1.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()
-        glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0)
-
-        glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
-        glLoadIdentity()
-        gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-
-        current_color = Buffer(GL_FLOAT, 4)
-        glGetFloatv(GL_CURRENT_COLOR, current_color);
-
-        glEnable(GL_COLOR_MATERIAL)
-
-        glBegin(GL_QUADS)
-        glColor3f(one, zer, zer)
-        glVertex3f(-0.75, -0.75, 0.0)
-        glColor3f(zer, one, zer)
-        glVertex3f( 0.75, -0.75, 0.0)
-        glColor3f(zer, zer, one)
-        glVertex3f( 0.75,  0.75, 0.0)
-        glColor3f(one, one, zer)
-        glVertex3f(-0.75,  0.75, 0.0)
-        glEnd()
-
-        glColor4fv(current_color)
-        glDisable(GL_COLOR_MATERIAL)
-
-        glMatrixMode(GL_PROJECTION)
-        glPopMatrix()
-
-        glMatrixMode(GL_MODELVIEW)
-        glPopMatrix()
-
-    def _debug_quad(self):
-        viewport = Buffer(GL_INT, 4)
-        glGetIntegerv(GL_VIEWPORT, viewport)
-        glViewport(300, 200, 256, 256)
-        glScissor(300, 200, 256, 256)
-
-        # actual drawing
-        self._draw_a_quad()
-
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
-        glScissor(viewport[0], viewport[1], viewport[2], viewport[3])
-
-    def delete(self):
-        """
-        cleanup FBO data
-        """
-        gl_data = self._gl_data
-        id_buf = Buffer(GL_INT, 1)
-
-        id_buf.to_list()[0] = gl_data.color_tex
-        glDeleteTextures(1, id_buf)
-
-        id_buf.to_list()[0] = gl_data.depth_rb
-        glDeleteRenderbuffers(1, id_buf)
-
-        id_buf.to_list()[0] = gl_data.fb
-        glDeleteFramebuffers(1, id_buf)
-
-    def __del__(self):
-        self.delete()
+    # unbinding
+    gpu.offscreen_object_unbind(offscreen_object, True)
 

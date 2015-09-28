@@ -158,16 +158,14 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         self._hmd.loop()
 
-        fbo = self._hmd.fbo
-        width = self._hmd.width
-        height = self._hmd.height
-        projection_matrix = self._hmd.projection_matrix
+        offscreen_object = self._hmd.offscreen_object
         modelview_matrix = self._hmd.modelview_matrix
+        projection_matrix = self._hmd.projection_matrix
 
-        TODO
-        """
-        bpy.ops.view3d.offscreen(fbo, width, height, projection_matrix, modelview_matrix)
-        """
+        TODO # need to run this twice, once for each eye
+
+        # drawing
+        # bpy.ops.view3d.offscreen(offscreen_object=offscreen_object, projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
 
         self._hmd.frameReady()
 

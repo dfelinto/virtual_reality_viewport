@@ -6,6 +6,8 @@ from mathutils import (
         Vector,
         )
 
+import gpu
+
 
 # ############################################################
 # Data structs
@@ -44,8 +46,8 @@ class HMD_Data:
     interpupillary_distance = Vector((0.0, 0.0))
     width = 0
     height = 0
-    fbo = 0
-    texture = 0
+    fbo_id = 0
+    texture_id = 0
 
 
 # ############################################################
@@ -59,6 +61,7 @@ class HMD_Base:
         "_interpupillary_distance",
         "_modelview_matrix",
         "_name",
+        "_offscreen_object",
         "_projection_matrix",
         "_texture",
         "_width",
@@ -71,16 +74,21 @@ class HMD_Base:
         self._interpupillary_distance = Vector((0.0, 0.0))
         self._width = 0
         self._height = 0
-        self._fbo = 0
-        self._texture = 0
+        self._fbo_id = 0
+        self._texture_id = 0
+        self._offscreen_object = None
+
+    @property
+    def offscreen_object(self):
+        return self._offscreen_object
 
     @property
     def fbo(self):
-        return self._fbo
+        return self._fbo_id
 
     @property
     def texture(self):
-        return self._texture
+        return self._texture_id
 
     @property
     def width(self):
@@ -115,7 +123,17 @@ class HMD_Base:
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        assert False, "init() not implemented for the \"{0}\" device".format(self._name)
+        try:
+            self._offscreen_object = gpu.offscreen_object_create(self._width, self._height)
+            self._fbo_id = self._offscreen_object.framebuffer_object
+            self._texture_id = self._offscreen_object.color_object
+
+        except Exception as E:
+            print(E)
+            return False
+
+        else:
+            return True
 
     def loop(self):
         """
@@ -133,5 +151,9 @@ class HMD_Base:
         """
         Garbage collection
         """
-        assert False, "quit() not implemented for the \"{0}\" device".format(self._name)
+        try:
+            gpu.offscreen_object_free(self._offscreen_object)
+
+        except Exception as E:
+            print(E)
 

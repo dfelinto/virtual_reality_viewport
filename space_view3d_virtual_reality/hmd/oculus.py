@@ -49,8 +49,9 @@ class Oculus(HMD_Base):
         """
         Oculus SDK bridge
 
-        return: status, fbo, texture, projection matrix, eye separation, width, height
+        return: status, projection matrix, eye separation, width, height
         """
+        return super(Oculus, self).init()
 
     def loop(self):
         """
@@ -82,4 +83,5 @@ class Oculus(HMD_Base):
 
         delete fbo, rbo, tex_id
         """
+        return super(Oculus, self).quit()
 
