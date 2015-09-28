@@ -59,6 +59,19 @@ class Preview:
         self._width = width
         self._height = height
 
+    def _getScissor(self, viewport, offset_x, offset_y, width, height):
+        """
+        Fit scissor inside viewport
+        """
+        scissor = [0,0,0,0]
+
+        scissor[0] = max(offset_x, viewport[0])
+        scissor[1] = max(offset_y, viewport[1])
+        scissor[2] = min(width, viewport[2] - (scissor[0] - viewport[0]))
+        scissor[3] = min(height, viewport[3] - (scissor[1] - viewport[1]))
+
+        return scissor
+
     def loop(self):
         """
         Draw in the preview window
@@ -66,7 +79,8 @@ class Preview:
         texture = self._texture
         width = self._width
         height = self._height
-        offset = (600, 200)
+
+        offset_x, offset_y = 100, 100 # this is window offset, not viewport offset
 
         act_tex = Buffer(GL_INT, 1)
         glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
@@ -74,8 +88,15 @@ class Preview:
         viewport = Buffer(GL_INT, 4)
         glGetIntegerv(GL_VIEWPORT, viewport)
 
-        glViewport(offset[0], offset[1], width, height)
-        glScissor(offset[0], offset[1], width, height)
+        glViewport(
+                max(offset_x, viewport[0]),
+                max(offset_x, viewport[1]),
+                width,
+                height,
+                )
+
+        scissor = self._getScissor(viewport, offset_x, offset_y, width, height)
+        glScissor(scissor[0], scissor[1], scissor[2], scissor[3])
 
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LESS)
