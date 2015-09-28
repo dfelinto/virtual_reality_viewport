@@ -16,6 +16,7 @@ from bgl import *
 
 TODO = True
 
+
 class Preview:
     __slots__ = {
             "_texture",

@@ -2,14 +2,15 @@ import bpy
 
 from bpy.app.handlers import persistent
 
-TODO = True
+from .hmd import HMD
 
 from .preview import Preview
-from .hmd import HMD
 
 from .lib import (
         getDisplayBackend,
         )
+
+TODO = True
 
 
 # ############################################################
@@ -108,6 +109,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._hmd.quit()
         self._preview.quit()
 
+        # cleanup viewport
+        context.area.tag_redraw()
+
     def init(self, context):
         """
         Initialize the callbacks and the external devices
@@ -160,7 +164,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
     def _draw_callback_px(self, context):
         """callback function, run every time the viewport is refreshed"""
-        self._preview.loop()
+        wm = context.window_manager
+        vr = wm.virtual_reality
+
+        if vr.use_preview:
+            self._preview.loop()
 
 
 # ############################################################
