@@ -23,8 +23,9 @@ class VirtualRealityPanel(bpy.types.Panel):
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="PLAY").action='ENABLE'
         else:
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="X").action='DISABLE'
+
             col.separator()
-            col.prop(vr, "use_preview")
+            col.prop(vr, "preview_scale", text="Preview")
 
 
 # ############################################################

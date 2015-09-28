@@ -59,47 +59,30 @@ class Preview:
         self._width = width
         self._height = height
 
-    def _getScissor(self, viewport, offset_x, offset_y, width, height):
-        """
-        Fit scissor inside viewport
-        """
-        scissor = [0,0,0,0]
-
-        scissor[0] = max(offset_x, viewport[0])
-        scissor[1] = max(offset_y, viewport[1])
-        scissor[2] = min(width, viewport[2] - (scissor[0] - viewport[0]))
-        scissor[3] = min(height, viewport[3] - (scissor[1] - viewport[1]))
-
-        return scissor
-
-    def loop(self):
+    def loop(self, scale):
         """
         Draw in the preview window
         """
-        texture = self._texture
-        width = self._width
-        height = self._height
+        if not scale:
+            return
 
-        offset_x, offset_y = 100, 100 # this is window offset, not viewport offset
+        texture = self._texture
 
         act_tex = Buffer(GL_INT, 1)
         glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
 
-        viewport = Buffer(GL_INT, 4)
-        glGetIntegerv(GL_VIEWPORT, viewport)
+        if scale != 100:
+            viewport = Buffer(GL_INT, 4)
+            glGetIntegerv(GL_VIEWPORT, viewport)
 
-        glViewport(
-                max(offset_x, viewport[0]),
-                max(offset_x, viewport[1]),
-                width,
-                height,
-                )
+            width = int(scale * 0.01 * viewport[2])
+            height = int(scale * 0.01 * viewport[3])
 
-        scissor = self._getScissor(viewport, offset_x, offset_y, width, height)
-        glScissor(scissor[0], scissor[1], scissor[2], scissor[3])
+            glViewport(viewport[0], viewport[1], width, height)
+            glScissor(viewport[0], viewport[1], width, height)
 
-        glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LESS)
+            glEnable(GL_DEPTH_TEST)
+            glDepthFunc(GL_LESS)
 
         view_setup()
 
@@ -114,8 +97,9 @@ class Preview:
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_DEPTH_TEST)
 
-        view_reset(viewport)
+        view_reset()
 
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
-        glScissor(viewport[0], viewport[1], viewport[2], viewport[3])
+        if scale != 100:
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
+            glScissor(viewport[0], viewport[1], viewport[2], viewport[3])
 

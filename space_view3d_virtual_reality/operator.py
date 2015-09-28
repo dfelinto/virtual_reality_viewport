@@ -54,7 +54,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         if event.type == 'TIMER':
             self.loop()
 
-            if vr.use_preview:
+            if vr.preview_scale:
                 context.area.tag_redraw()
 
         return {'PASS_THROUGH'}
@@ -167,8 +167,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         wm = context.window_manager
         vr = wm.virtual_reality
 
-        if vr.use_preview:
-            self._preview.loop()
+        self._preview.loop(vr.preview_scale)
 
 
 # ############################################################
@@ -181,10 +180,14 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             default=False,
             )
 
-    use_preview = bpy.props.BoolProperty(
-            name="Preview",
-            default=False,
+    preview_scale = bpy.props.IntProperty(
+            name="Preview Scale",
+            min=0,
+            max=100,
+            default=100,
+            subtype='PERCENTAGE',
             )
+
 
 # ############################################################
 # Callbacks

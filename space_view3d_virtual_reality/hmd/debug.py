@@ -109,7 +109,7 @@ def view_setup():
     gluLookAt(0.0, 0.0, 1.0, 0.0,0.0,0.0, 0.0,1.0,0.0)
 
 
-def view_reset(viewport):
+def view_reset():
     # Get texture info
     glMatrixMode(GL_PROJECTION)
     glPopMatrix()
@@ -119,8 +119,6 @@ def view_reset(viewport):
 
     glMatrixMode(GL_MODELVIEW)
     glPopMatrix()
-
-    glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
 
 # ##################
@@ -237,7 +235,8 @@ class FBO:
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_DEPTH_TEST)
 
-        view_reset(viewport)
+        view_reset()
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
         # unbinding
         glBindFramebuffer(GL_FRAMEBUFFER, act_fbo[0])

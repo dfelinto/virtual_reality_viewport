@@ -286,7 +286,7 @@ def view_setup():
     gluLookAt(0.0, 0.0, 1.0, 0.0,0.0,0.0, 0.0,1.0,0.0)
 
 
-def view_reset(viewport):
+def view_reset():
     # Get texture info
     glMatrixMode(GL_PROJECTION)
     glPopMatrix()
@@ -296,8 +296,6 @@ def view_reset(viewport):
 
     glMatrixMode(GL_MODELVIEW)
     glPopMatrix()
-
-    glViewport(viewport[0], viewport[1], viewport[2], viewport[3])
 
 
 def draw_rectangle_rainbow(zed=0.0):
@@ -371,7 +369,9 @@ def draw_callback_px(self, context):
     glUseProgram(0)
     glActiveTexture(act_tex[0])
     glBindTexture(GL_TEXTURE_2D, 0)
-    view_reset(self.viewport)
+    view_reset()
+    glViewport(self.viewport[0], self.viewport[1], self.viewport[2], self.viewport[3])
+
 
     glMatrixMode(GL_MODELVIEW)
     glTranslatef(-cam_pos[0], -cam_pos[1], -cam_pos[2])
