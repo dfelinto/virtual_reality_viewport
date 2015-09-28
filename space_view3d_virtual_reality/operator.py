@@ -130,7 +130,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         height = self._hmd.height
         texture = self._hmd.texture
 
-        self._preview.init(width, height, texture)
+        self._preview.init(texture, width, height)
 
         # setup modal
         self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz

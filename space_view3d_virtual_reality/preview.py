@@ -23,19 +23,19 @@ class Preview:
             "_height",
             }
 
-    def init(self, width, height, texture):
+    def init(self, texture, width, height):
         """
         Initialize preview window
 
+        :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
+        :type texture: bgl.GLint
         :param width: Horizontal dimension of preview window
         :type width: int
         :param height: Vertical dimension of preview window
         :type height: int
-        :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
-        :type texture: bgl.GLint
         """
         self._texture = texture
-        self.update(width, height)
+        self.update(texture, width, height)
 
     def quit(self):
         """
@@ -43,15 +43,18 @@ class Preview:
         """
         pass
 
-    def update(self, width, height):
+    def update(self, texture, width, height):
         """
         Resize preview window
 
+        :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
+        :type texture: bgl.GLint
         :param width: Horizontal dimension of preview window
         :type width: int
         :param height: Vertical dimension of preview window
         :type height: int
         """
+        self._texture = texture
         self._width = width
         self._height = height
 
