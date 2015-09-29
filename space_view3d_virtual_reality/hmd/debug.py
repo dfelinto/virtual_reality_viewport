@@ -47,7 +47,7 @@ class Debug(HMD_Base):
         Get fresh tracking data
         """
         print_debug('loop()')
-        debug_draw(self._offscreen_object, self._width, self._height)
+        #debug_draw(self._offscreen_object, self._width, self._height)
 
     def frameReady(self):
         """

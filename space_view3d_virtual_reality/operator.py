@@ -59,7 +59,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         if event.type == 'TIMER':
-            self.loop()
+            self.loop(vr.color_object)
 
             if vr.preview_scale and context.area:
                 area.tag_redraw()
@@ -152,7 +152,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         return True
 
-    def loop(self):
+    def loop(self, color_object):
         """
         Get fresh tracking data and render into the FBO
         """
@@ -166,6 +166,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         # drawing
         # bpy.ops.view3d.offscreen(offscreen_object=offscreen_object, projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
+        bpy.ops.view3d.offscreen(projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
+
+        self._preview.update(color_object)
 
         self._hmd.frameReady()
 
@@ -195,6 +198,13 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             default=100,
             subtype='PERCENTAGE',
             )
+
+    color_object = bpy.props.IntProperty(
+            name="Color Object",
+            default=0,
+            subtype='UNSIGNED',
+            )
+
 
 
 # ############################################################
