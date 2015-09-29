@@ -69,8 +69,8 @@ class HMD_Base:
 
     def __init__(self, name):
         self._name = name
-        self._projection_matrix = Matrix()
-        self._modelview_matrix = Matrix()
+        self._projection_matrix = Matrix.Identity(4)
+        self._modelview_matrix = Matrix.Identity(4)
         self._interpupillary_distance = Vector((0.0, 0.0))
         self._width = 0
         self._height = 0

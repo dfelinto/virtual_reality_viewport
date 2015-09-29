@@ -68,8 +68,7 @@ class Preview:
             glViewport(viewport[0], viewport[1], width, height)
             glScissor(viewport[0], viewport[1], width, height)
 
-            glEnable(GL_DEPTH_TEST)
-            glDepthFunc(GL_LESS)
+        glDisable(GL_DEPTH_TEST)
 
         view_setup()
 
@@ -82,7 +81,6 @@ class Preview:
         glBindTexture(GL_TEXTURE_2D, act_tex[0])
 
         glDisable(GL_TEXTURE_2D)
-        glDisable(GL_DEPTH_TEST)
 
         view_reset()
 
