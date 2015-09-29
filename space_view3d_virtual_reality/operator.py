@@ -166,11 +166,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._hmd.setEye(i)
 
             offscreen_object = self._hmd.offscreen_object
-            modelview_matrix = self._hmd.modelview_matrix
             projection_matrix = self._hmd.projection_matrix
+            modelview_matrix = self._hmd.modelview_matrix
 
             # drawing
-            gpu.offscreen_object_draw(context, offscreen_object, modelview_matrix, projection_matrix)
+            gpu.offscreen_object_draw(offscreen_object, projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
 
