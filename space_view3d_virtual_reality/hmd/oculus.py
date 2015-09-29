@@ -45,7 +45,6 @@ class Oculus(HMD_Base):
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        return TODO
         """
         Oculus SDK bridge
 
@@ -53,6 +52,8 @@ class Oculus(HMD_Base):
         """
         self._width = 512 #TODO
         self._height = 512 #TODO
+
+        TODO
         return super(Oculus, self).init()
 
     def loop(self, context):
