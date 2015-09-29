@@ -20,23 +20,16 @@ TODO = True
 class Preview:
     __slots__ = {
             "_texture",
-            "_width",
-            "_height",
             }
 
-    def init(self, texture, width, height):
+    def init(self, texture):
         """
         Initialize preview window
 
         :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
         :type texture: bgl.GLint
-        :param width: Horizontal dimension of preview window
-        :type width: int
-        :param height: Vertical dimension of preview window
-        :type height: int
         """
-        self._texture = texture
-        self.update(texture, width, height)
+        self.update(texture)
 
     def quit(self):
         """
@@ -44,20 +37,14 @@ class Preview:
         """
         pass
 
-    def update(self, texture, width, height):
+    def update(self, texture):
         """
         Resize preview window
 
         :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
         :type texture: bgl.GLint
-        :param width: Horizontal dimension of preview window
-        :type width: int
-        :param height: Vertical dimension of preview window
-        :type height: int
         """
         self._texture = texture
-        self._width = width
-        self._height = height
 
     def loop(self, scale):
         """
@@ -69,7 +56,7 @@ class Preview:
         texture = self._texture
 
         act_tex = Buffer(GL_INT, 1)
-        glGetIntegerv(GL_ACTIVE_TEXTURE, act_tex)
+        glGetIntegerv(GL_TEXTURE_2D, act_tex)
 
         if scale != 100:
             viewport = Buffer(GL_INT, 4)

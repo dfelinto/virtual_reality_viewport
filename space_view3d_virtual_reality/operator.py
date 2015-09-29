@@ -142,7 +142,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         height = self._hmd.height
         texture = self._hmd.texture
 
-        self._preview.init(texture, width, height)
+        self._preview.init(texture)
         self._area_hash = hash(context.area)
 
         # setup modal
