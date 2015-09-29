@@ -13,8 +13,6 @@ from .opengl_helper import (
 
 from bgl import *
 
-TODO = True
-
 
 class Preview:
     __slots__ = {

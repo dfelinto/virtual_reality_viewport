@@ -26,9 +26,6 @@ class VirtualRealityPanel(bpy.types.Panel):
 
             col.separator()
             col.prop(vr, "preview_scale", text="Preview")
-            row = col.row(align=True)
-            row.prop(vr, "color_object_left")
-            row.prop(vr, "color_object_right")
 
 
 # ############################################################

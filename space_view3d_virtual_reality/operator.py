@@ -10,7 +10,7 @@ from .lib import (
         getDisplayBackend,
         )
 
-TODO = True
+import gpu
 
 
 # ############################################################
@@ -59,7 +59,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         if event.type == 'TIMER':
-            self.loop(context, vr.color_object_left, vr.color_object_right)
+            self.loop(context)
 
             if vr.preview_scale and context.area:
                 area.tag_redraw()
@@ -156,7 +156,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         return True
 
-    def loop(self, context, color_object_left, color_object_right):
+    def loop(self, context):
         """
         Get fresh tracking data and render into the FBO
         """
@@ -170,12 +170,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             projection_matrix = self._hmd.projection_matrix
 
             # drawing
-            # bpy.ops.view3d.offscreen(offscreen_object=offscreen_object, projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
-            bpy.ops.view3d.offscreen(projection_matrix=projection_matrix, modelview_matrix=modelview_matrix) #DEBUG
+            gpu.offscreen_object_draw(context, offscreen_object, modelview_matrix, projection_matrix)
 
         self._hmd.frameReady()
-        self._preview.update(color_object_left, color_object_right) #DEBUG
-
 
     def _draw_callback_px(self, context):
         """callback function, run every time the viewport is refreshed"""
@@ -203,19 +200,6 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             default=100,
             subtype='PERCENTAGE',
             )
-
-    color_object_left = bpy.props.IntProperty(
-            name="Color Object Left",
-            default=0,
-            subtype='UNSIGNED',
-            )
-
-    color_object_right = bpy.props.IntProperty(
-            name="Color Object Right",
-            default=0,
-            subtype='UNSIGNED',
-            )
-
 
 
 # ############################################################
