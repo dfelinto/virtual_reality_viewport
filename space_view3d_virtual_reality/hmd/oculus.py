@@ -51,9 +51,11 @@ class Oculus(HMD_Base):
 
         return: status, projection matrix, eye separation, width, height
         """
+        self._width = 512 #TODO
+        self._height = 512 #TODO
         return super(Oculus, self).init()
 
-    def loop(self):
+    def loop(self, context):
         """
         Get fresh tracking data
         """
@@ -63,6 +65,7 @@ class Oculus(HMD_Base):
 
         return:head position, head orientation
         """
+        super(Oculus, self).loop(context)
 
     def frameReady(self):
         """

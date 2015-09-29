@@ -59,7 +59,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         if event.type == 'TIMER':
-            self.loop(vr.color_object)
+            self.loop(context, vr.color_object_left, vr.color_object_right)
 
             if vr.preview_scale and context.area:
                 area.tag_redraw()
@@ -140,9 +140,13 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         # get the data from device
         width = self._hmd.width
         height = self._hmd.height
-        texture = self._hmd.texture
 
-        self._preview.init(texture)
+        color_object = [0, 0]
+        for i in range(2):
+            self._hmd.setEye(i)
+            color_object[i] = self._hmd.color_object
+
+        self._preview.init(color_object[0], color_object[1])
         self._area_hash = hash(context.area)
 
         # setup modal
@@ -152,25 +156,26 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         return True
 
-    def loop(self, color_object):
+    def loop(self, context, color_object_left, color_object_right):
         """
         Get fresh tracking data and render into the FBO
         """
-        self._hmd.loop()
+        self._hmd.loop(context)
 
-        offscreen_object = self._hmd.offscreen_object
-        modelview_matrix = self._hmd.modelview_matrix
-        projection_matrix = self._hmd.projection_matrix
+        for i in range(2):
+            self._hmd.setEye(i)
 
-        TODO # need to run this twice, once for each eye
+            offscreen_object = self._hmd.offscreen_object
+            modelview_matrix = self._hmd.modelview_matrix
+            projection_matrix = self._hmd.projection_matrix
 
-        # drawing
-        # bpy.ops.view3d.offscreen(offscreen_object=offscreen_object, projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
-        bpy.ops.view3d.offscreen(projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
-
-        self._preview.update(color_object)
+            # drawing
+            # bpy.ops.view3d.offscreen(offscreen_object=offscreen_object, projection_matrix=projection_matrix, modelview_matrix=modelview_matrix)
+            bpy.ops.view3d.offscreen(projection_matrix=projection_matrix, modelview_matrix=modelview_matrix) #DEBUG
 
         self._hmd.frameReady()
+        self._preview.update(color_object_left, color_object_right) #DEBUG
+
 
     def _draw_callback_px(self, context):
         """callback function, run every time the viewport is refreshed"""
@@ -199,8 +204,14 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             subtype='PERCENTAGE',
             )
 
-    color_object = bpy.props.IntProperty(
-            name="Color Object",
+    color_object_left = bpy.props.IntProperty(
+            name="Color Object Left",
+            default=0,
+            subtype='UNSIGNED',
+            )
+
+    color_object_right = bpy.props.IntProperty(
+            name="Color Object Right",
             default=0,
             subtype='UNSIGNED',
             )

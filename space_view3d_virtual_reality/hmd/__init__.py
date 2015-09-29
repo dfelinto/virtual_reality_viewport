@@ -41,13 +41,13 @@ def HMD(display_backend):
 
 class HMD_Data:
     status = None
-    projection_matrix = Matrix()
-    modelview_matrix = Matrix()
+    projection_matrix = Matrix.Identity(4)
+    modelview_matrix = Matrix.Identity(4)
     interpupillary_distance = Vector((0.0, 0.0))
     width = 0
     height = 0
-    fbo_id = 0
-    texture_id = 0
+    framebuffer_object = 0
+    color_object = 0
 
 
 # ############################################################
@@ -56,39 +56,29 @@ class HMD_Data:
 
 class HMD_Base:
     __slots__ = {
-        "_fbo",
+        "_color_object",
+        "_current_eye",
+        "_framebuffer_object",
         "_height",
         "_interpupillary_distance",
         "_modelview_matrix",
         "_name",
         "_offscreen_object",
         "_projection_matrix",
-        "_texture",
         "_width",
         }
 
     def __init__(self, name):
         self._name = name
-        self._projection_matrix = Matrix.Identity(4)
-        self._modelview_matrix = Matrix.Identity(4)
-        self._interpupillary_distance = Vector((0.0, 0.0))
+        self._current_eye = 0
         self._width = 0
         self._height = 0
-        self._fbo_id = 0
-        self._texture_id = 0
-        self._offscreen_object = None
-
-    @property
-    def offscreen_object(self):
-        return self._offscreen_object
-
-    @property
-    def fbo(self):
-        return self._fbo_id
-
-    @property
-    def texture(self):
-        return self._texture_id
+        self._projection_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
+        self._modelview_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
+        self._interpupillary_distance = Vector((0.0, 0.0))
+        self._framebuffer_object = [0, 0]
+        self._color_object = [0, 0]
+        self._offscreen_object = [None, None]
 
     @property
     def width(self):
@@ -99,13 +89,27 @@ class HMD_Base:
         return self._height
 
     @property
+    def offscreen_object(self):
+        return self._offscreen_object[self._current_eye]
+
+    @property
+    def framebuffer_object(self):
+        return self._framebuffer_object[self._current_eye]
+
+    @property
+    def color_object(self):
+        return self._color_object[self._current_eye]
+
+    @property
     def projection_matrix(self):
-        return self._projection_matrix
+        return self._projection_matrix[self._current_eye]
 
     @property
     def modelview_matrix(self):
-        TODO # calculate
-        return self._modelview_matrix
+        return self._modelview_matrix[self._current_eye]
+
+    def setEye(self, eye):
+        self._current_eye = int(bool(eye))
 
     def isConnected(self):
         """
@@ -124,9 +128,10 @@ class HMD_Base:
         :rtype: bool
         """
         try:
-            self._offscreen_object = gpu.offscreen_object_create(self._width, self._height)
-            self._fbo_id = self._offscreen_object.framebuffer_object
-            self._texture_id = self._offscreen_object.color_object
+            for i in range(2):
+                self._offscreen_object[i] = gpu.offscreen_object_create(self._width, self._height)
+                self._framebuffer_object[i] = self._offscreen_object[i].framebuffer_object
+                self._color_object[i] = self._offscreen_object[i].color_object
 
         except Exception as E:
             print(E)
@@ -135,15 +140,15 @@ class HMD_Base:
         else:
             return True
 
-    def loop(self):
+    def loop(self, context):
         """
         Get fresh tracking data
         """
-        assert False, "loop() not implemented for the \"{0}\" device".format(self._name)
+        self.updateMatrices(context)
 
     def frameReady(self):
         """
-        The frame is ready to be send to the device
+        The frame is ready to be sent to the device
         """
         assert False, "frameReady() not implemented for the \"{0}\" device".format(self._name)
 
@@ -152,8 +157,16 @@ class HMD_Base:
         Garbage collection
         """
         try:
-            gpu.offscreen_object_free(self._offscreen_object)
+            for i in range(2):
+                gpu.offscreen_object_free(self._offscreen_object[i])
 
         except Exception as E:
             print(E)
+
+    def updateMatrices(self, context):
+        """
+        Update OpenGL drawing matrices
+        """
+        TODO
+
 

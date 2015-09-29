@@ -7,7 +7,6 @@ that is projected in the HMD
 """
 
 from .opengl_helper import (
-        draw_rectangle,
         view_reset,
         view_setup,
         )
@@ -19,17 +18,20 @@ TODO = True
 
 class Preview:
     __slots__ = {
-            "_texture",
+            "_color_object_left",
+            "_color_object_right",
             }
 
-    def init(self, texture):
+    def init(self, color_object_left, color_object_right):
         """
         Initialize preview window
 
-        :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
-        :type texture: bgl.GLint
+        :param color_object_left: 2D Texture binding ID (bind to the Framebuffer Object) for left eye
+        :type color_object_left: bgl.GLuint
+        :param color_object_right: 2D Texture binding ID (bind to the Framebuffer Object) for right eye
+        :type color_object_right: bgl.GLuint
         """
-        self.update(texture)
+        self.update(color_object_left, color_object_right)
 
     def quit(self):
         """
@@ -37,14 +39,33 @@ class Preview:
         """
         pass
 
-    def update(self, texture):
+    def update(self, color_object_left, color_object_right):
         """
-        Resize preview window
+        Update OpenGL binding textures
 
-        :param texture: 2D Texture binding ID (bind to the Framebuffer Object)
-        :type texture: bgl.GLint
+        :param color_object_left: 2D Texture binding ID (bind to the Framebuffer Object) for left eye
+        :type color_object_left: bgl.GLuint
+        :param color_object_right: 2D Texture binding ID (bind to the Framebuffer Object) for right eye
+        :type color_object_right: bgl.GLuint
         """
-        self._texture = texture
+        self._color_object_left = color_object_left
+        self._color_object_right = color_object_right
+
+
+    def _drawRectangle(self, eye):
+        texco = [(1, 1), (0, 1), (0, 0), (1,0)]
+        verco = [[(0.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), ( 0.0, -1.0)],
+                 [(1.0, 1.0), ( 0.0, 1.0), ( 0.0, -1.0), ( 1.0, -1.0)]]
+
+        glPolygonMode(GL_FRONT_AND_BACK , GL_FILL)
+
+        glColor4f(1.0, 1.0, 1.0, 0.0)
+
+        glBegin(GL_QUADS)
+        for i in range(4):
+            glTexCoord3f(texco[i][0], texco[i][1], 0.0)
+            glVertex2f(verco[eye][i][0], verco[eye][i][1])
+        glEnd()
 
     def loop(self, scale):
         """
@@ -52,8 +73,6 @@ class Preview:
         """
         if not scale:
             return
-
-        texture = self._texture
 
         act_tex = Buffer(GL_INT, 1)
         glGetIntegerv(GL_TEXTURE_2D, act_tex)
@@ -74,9 +93,12 @@ class Preview:
 
         glEnable(GL_TEXTURE_2D)
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, texture)
 
-        draw_rectangle()
+        glBindTexture(GL_TEXTURE_2D, self._color_object_left)
+        self._drawRectangle(0)
+
+        glBindTexture(GL_TEXTURE_2D, self._color_object_right)
+        self._drawRectangle(1)
 
         glBindTexture(GL_TEXTURE_2D, act_tex[0])
 
