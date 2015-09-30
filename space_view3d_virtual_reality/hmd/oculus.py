@@ -9,9 +9,12 @@ The bridge code is hosted at Visgraf:
 http://git.impa.br/dfelinto/oculus_sdk_bridge
 """
 
-TODO = False
+from mathutils import (
+        Vector,
+        Matrix,
+        )
 
-from . import HMD_Base, HMD_Data
+from . import HMD_Base
 
 from ..lib import (
         checkModule,
@@ -29,10 +32,10 @@ class Oculus(HMD_Base):
         :return: return True if the device is connected
         :rtype: bool
         """
-        from bridge import OculusBridge
+        from bridge.oculus import HMD
 
         try:
-            return OculusBridge.isConnected()
+            return HMD.isConnected()
 
         except Exception as E:
             print(E)
@@ -45,47 +48,60 @@ class Oculus(HMD_Base):
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        """
-        Oculus SDK bridge
+        try:
+            from bridge.oculus import HMD
+            self._hmd = HMD()
 
-        return: status, projection matrix, eye separation, width, height
-        """
-        self._width = 512 #TODO
-        self._height = 512 #TODO
+            # gather arguments from HMD
+            self._width = self._hmd.width
+            self._height = self._hmd.height
+            self._projection_matrix[0] = self._hmd.projection_matrix_left
+            self._projection_matrix[1] = self._hmd.projection_matrix_right
 
-        TODO
-        return super(Oculus, self).init()
+            # initialize FBO
+            super(Oculus, self).init()
+
+            # send it back to HMD
+            if not self._hmd.setup(self._framebuffer_object[0], self._framebuffer_object[1]):
+                raise Exception("Failed to setup HMD")
+
+        except Exception as E:
+            print(E)
+            self._hmd = None
+            return False
+
+        else:
+            return True
 
     def loop(self, context):
         """
         Get fresh tracking data
         """
-        TODO
-        """
-        Oculus SDK bridge
 
-        return:head position, head orientation
-        """
+        data = self._hmd.update()
+
+        self._head_transformation = Matrix(data[0])
+        self._eye_pose[0] = Vector(data[1])
+        self._eye_pose[1] = Vector(data[2])
+
+        # update matrices
         super(Oculus, self).loop(context)
 
     def frameReady(self):
         """
-        The frame is ready to be send to the device
+        The frame is ready to be sent to the device
         """
-        TODO
-        """
-        Oculus SDK bridge
-        """
+        try:
+            self._hmd.frameReady()
+        except Exception as E:
+            return False
 
     def quit(self):
         """
         Garbage collection
         """
-        TODO
-        """
-        Oculus SDK bridge
+        del self._hmd
+        self._hmd = None
 
-        delete fbo, rbo, tex_id
-        """
         return super(Oculus, self).quit()
 

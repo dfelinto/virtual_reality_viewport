@@ -56,16 +56,17 @@ class HMD_Data:
 
 class HMD_Base:
     __slots__ = {
-        "_color_object",
-        "_current_eye",
-        "_framebuffer_object",
-        "_height",
-        "_interpupillary_distance",
-        "_modelview_matrix",
         "_name",
-        "_offscreen_object",
-        "_projection_matrix",
+        "_current_eye",
         "_width",
+        "_height",
+        "_projection_matrix",
+        "_head_transformation",
+        "_eye_pose",
+        "_offscreen_object",
+        "_framebuffer_object",
+        "_color_object",
+        "_modelview_matrix",
         }
 
     def __init__(self, name):
@@ -75,10 +76,11 @@ class HMD_Base:
         self._height = 0
         self._projection_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
         self._modelview_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
-        self._interpupillary_distance = Vector((0.0, 0.0))
         self._framebuffer_object = [0, 0]
         self._color_object = [0, 0]
         self._offscreen_object = [None, None]
+        self._eye_pose = [Vector((0.0, 0.0, 0.0)), Vector((0.0, 0.0, 0.0))]
+        self._head_transformation = [Matrix.Identity(4), Matrix.Identity(4)]
 
     @property
     def width(self):
