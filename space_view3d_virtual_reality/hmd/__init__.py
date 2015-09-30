@@ -8,18 +8,22 @@ from mathutils import (
 
 import gpu
 
+VERBOSE = True
+
 
 # ############################################################
 # Data structs
 # ############################################################
 
-def HMD(display_backend):
+def HMD(display_backend, error_callback):
     """
     return the head mounted display device class
     (defined in another file)
 
-    :param display_backend: asdasd
+    :param display_backend: backend engine
     :type display_backend: str
+    :param error_callback: error handler
+    :type error_callback: func(message, is_fatal)
     """
     from .oculus import Oculus
     from .debug import Debug
@@ -32,22 +36,7 @@ def HMD(display_backend):
     if display_backend not in displays:
         assert False, "Display Backend \"{0}\" not implemented".format(display_backend)
 
-    return displays[display_backend]()
-
-
-# ############################################################
-# Data structs
-# ############################################################
-
-class HMD_Data:
-    status = None
-    projection_matrix = Matrix.Identity(4)
-    modelview_matrix = Matrix.Identity(4)
-    interpupillary_distance = Vector((0.0, 0.0))
-    width = 0
-    height = 0
-    framebuffer_object = 0
-    color_object = 0
+    return displays[display_backend](error_callback)
 
 
 # ############################################################
@@ -58,6 +47,7 @@ class HMD_Base:
     __slots__ = {
         "_name",
         "_current_eye",
+        "_error_callback",
         "_width",
         "_height",
         "_projection_matrix",
@@ -69,8 +59,9 @@ class HMD_Base:
         "_modelview_matrix",
         }
 
-    def __init__(self, name):
+    def __init__(self, name, error_callback):
         self._name = name
+        self._error_callback = error_callback
         self._current_eye = 0
         self._width = 0
         self._height = 0
@@ -165,10 +156,29 @@ class HMD_Base:
         except Exception as E:
             print(E)
 
+    def error(self, function, exception, is_fatal):
+        """
+        Handle error messages
+        """
+        if VERBOSE:
+            print("ADD-ON :: {0}() : {1}".format(function, exception))
+            import sys
+            traceback = sys.exc_info()
+
+            if traceback and traceback[0]:
+                print(traceback[0])
+
+        if hasattr(exception, "strerror"):
+            message = exception.strerror
+        else:
+            message = str(exception)
+
+        # send the error the interface
+        self._error_callback(message, is_fatal)
+
     def updateMatrices(self, context):
         """
         Update OpenGL drawing matrices
         """
         TODO
-
 

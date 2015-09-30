@@ -23,11 +23,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     bl_label = "Toggle Virtual Reality Display"
     bl_description = ""
 
-    _gl_data = None
+    _hmd = None
     _timer = None
     _handle = None
-    _width = 1920
-    _height = 1080
     _area_hash = -1
 
     action = bpy.props.EnumProperty(
@@ -99,7 +97,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """garbage collect"""
         # change it so the original modal operator will clean things up
         wm = context.window_manager
-        wm.virtual_reality.is_enabled = False
+        vr = wm.virtual_reality
+
+        vr.is_enabled = False
+        vr.error_message = ""
 
     def _quit(self, context):
         """actual quit"""
@@ -113,8 +114,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             del self._handle
 
-        self._hmd.quit()
         self._preview.quit()
+
+        if self._hmd:
+            self._hmd.quit()
 
         # cleanup viewport
         if context.area:
@@ -125,10 +128,13 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         Initialize the callbacks and the external devices
         """
         wm = context.window_manager
-        wm.virtual_reality.is_enabled = True
+        vr = wm.virtual_reality
+
+        vr.is_enabled = True
+        vr.error_message = ""
 
         display_backend = getDisplayBackend(context)
-        self._hmd = HMD(display_backend)
+        self._hmd = HMD(display_backend, self._error_callback)
         self._preview = Preview()
 
         if not self._hmd.isConnected():
@@ -182,6 +188,20 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             vr = wm.virtual_reality
             self._preview.loop(vr.preview_scale)
 
+    def _error_callback(self, message, is_fatal):
+        """
+        Error handler, called from HMD class
+        """
+        context = bpy.context
+        wm = context.window_manager
+        vr = wm.virtual_reality
+
+        if is_fatal:
+            self.report({'ERROR'}, message)
+            self.quit(context)
+
+        vr.error_message = message
+
 
 # ############################################################
 # Global Properties
@@ -201,6 +221,10 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             subtype='PERCENTAGE',
             )
 
+    error_message = bpy.props.StringProperty(
+            name="Error Message",
+            )
+
 
 # ############################################################
 # Callbacks
@@ -215,7 +239,10 @@ def virtual_reality_load_pre(dummy):
 @persistent
 def virtual_reality_load_post(dummy):
     wm = bpy.context.window_manager
-    wm.virtual_reality.is_enabled = False
+    vr = wm.virtual_reality
+
+    vr.is_enabled = False
+    vr.error_message = ""
 
 
 # ############################################################

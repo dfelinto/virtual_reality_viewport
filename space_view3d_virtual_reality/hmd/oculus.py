@@ -21,8 +21,8 @@ from ..lib import (
         )
 
 class Oculus(HMD_Base):
-    def __init__(self):
-        super(Oculus, self).__init__('Oculus')
+    def __init__(self, error_callback):
+        super(Oculus, self).__init__('Oculus', error_callback)
         checkModule('oculus_sdk_bridge')
 
     def isConnected(self):
@@ -32,13 +32,12 @@ class Oculus(HMD_Base):
         :return: return True if the device is connected
         :rtype: bool
         """
-        from bridge.oculus import HMD
-
         try:
+            from bridge.oculus import HMD
             return HMD.isConnected()
 
         except Exception as E:
-            print(E)
+            self.error("isConnected", E, True)
             return False
 
     def init(self):
@@ -66,7 +65,7 @@ class Oculus(HMD_Base):
                 raise Exception("Failed to setup HMD")
 
         except Exception as E:
-            print(E)
+            self.error("init", E, True)
             self._hmd = None
             return False
 
@@ -77,15 +76,21 @@ class Oculus(HMD_Base):
         """
         Get fresh tracking data
         """
+        try:
+            data = self._hmd.update()
 
-        data = self._hmd.update()
+            self._head_transformation = Matrix(data[0])
+            self._eye_pose[0] = Vector(data[1])
+            self._eye_pose[1] = Vector(data[2])
 
-        self._head_transformation = Matrix(data[0])
-        self._eye_pose[0] = Vector(data[1])
-        self._eye_pose[1] = Vector(data[2])
+            # update matrices
+            super(Oculus, self).loop(context)
 
-        # update matrices
-        super(Oculus, self).loop(context)
+        except Exception as E:
+            self.error("look", E, False)
+            return False
+
+        return True
 
     def frameReady(self):
         """
@@ -93,15 +98,17 @@ class Oculus(HMD_Base):
         """
         try:
             self._hmd.frameReady()
+
         except Exception as E:
+            self.error("frameReady", E, False)
             return False
+
+        return True
 
     def quit(self):
         """
         Garbage collection
         """
-        del self._hmd
         self._hmd = None
-
         return super(Oculus, self).quit()
 

@@ -5,7 +5,7 @@ Debug
 Debug device for testing
 """
 
-from . import HMD_Base, HMD_Data
+from . import HMD_Base
 
 VERBOSE = False
 
@@ -15,8 +15,8 @@ def print_debug(*args):
 
 
 class Debug(HMD_Base):
-    def __init__(self):
-        super(Debug, self).__init__('Debug')
+    def __init__(self, error_callback):
+        super(Debug, self).__init__('Debug', error_callback)
 
     def isConnected(self):
         """

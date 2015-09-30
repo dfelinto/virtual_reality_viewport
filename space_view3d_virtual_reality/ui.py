@@ -27,6 +27,8 @@ class VirtualRealityPanel(bpy.types.Panel):
             col.separator()
             col.prop(vr, "preview_scale", text="Preview")
 
+            col.label(text=vr.error_message)
+
 
 # ############################################################
 # Un/Registration
