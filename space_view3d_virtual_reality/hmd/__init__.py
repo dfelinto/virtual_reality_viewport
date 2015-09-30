@@ -71,7 +71,7 @@ class HMD_Base:
         self._color_object = [0, 0]
         self._offscreen_object = [None, None]
         self._eye_pose = [Vector((0.0, 0.0, 0.0)), Vector((0.0, 0.0, 0.0))]
-        self._head_transformation = [Matrix.Identity(4), Matrix.Identity(4)]
+        self._head_transformation = Matrix.Identity(4)
 
     @property
     def width(self):
@@ -128,6 +128,8 @@ class HMD_Base:
 
         except Exception as E:
             print(E)
+            self._offscreen_object[0] = None
+            self._offscreen_object[1] = None
             return False
 
         else:

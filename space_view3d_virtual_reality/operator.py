@@ -89,7 +89,6 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 # quit right away
                 wm.virtual_reality.is_enabled = False
                 self._quit(context)
-                self.report({'ERROR'}, "Error initializing device")
 
         return {'CANCELLED'}
 
@@ -138,9 +137,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._preview = Preview()
 
         if not self._hmd.isConnected():
+            self.report({'ERROR'}, "Device not connected")
             return False
 
         if not self._hmd.init():
+            self.report({'ERROR'}, "Error initializing device")
             return False
 
         # get the data from device
