@@ -151,7 +151,8 @@ class HMD_Base:
         """
         try:
             for i in range(2):
-                gpu.offscreen_object_free(self._offscreen_object[i])
+                if self._offscreen_object[i]:
+                    gpu.offscreen_object_free(self._offscreen_object[i])
 
         except Exception as E:
             print(E)

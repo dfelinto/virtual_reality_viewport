@@ -87,7 +87,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 return {'RUNNING_MODAL'}
             else:
                 # quit right away
-                wm.virtual_reality.is_enabled = False
+                vr.is_enabled = False
                 self._quit(context)
                 self.report({'ERROR'}, "Error initializing device")
 
