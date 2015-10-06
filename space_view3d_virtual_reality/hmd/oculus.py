@@ -52,8 +52,10 @@ class Oculus(HMD_Base):
             self._hmd = HMD()
 
             # gather arguments from HMD
-            self._width = self._hmd.width
-            self._height = self._hmd.height
+            self._width[0] = self._hmd.width_left
+            self._height[0] = self._hmd.height_left
+            self._width[1] = self._hmd.width_right
+            self._height[1] = self._hmd.height_right
             self._projection_matrix[0] = self._hmd.projection_matrix_left
             self._projection_matrix[1] = self._hmd.projection_matrix_right
 

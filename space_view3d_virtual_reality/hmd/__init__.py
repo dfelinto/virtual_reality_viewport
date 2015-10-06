@@ -63,8 +63,8 @@ class HMD_Base:
         self._name = name
         self._error_callback = error_callback
         self._current_eye = 0
-        self._width = 0
-        self._height = 0
+        self._width = [0, 0]
+        self._height = [0, 0]
         self._projection_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
         self._modelview_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
         self._framebuffer_object = [0, 0]
