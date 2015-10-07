@@ -84,6 +84,8 @@ class Oculus(HMD_Base):
         Get fresh tracking data
         """
         try:
+            TODO # the data will change
+
             data = self._hmd.update()
 
             self._head_transformation = Matrix(data[0])

@@ -107,7 +107,6 @@ class HMD_Base:
 
     @projection_matrix.setter
     def projection_matrix(self, value):
-        print("projection_matrix", value)
         matrix = Matrix()
 
         matrix[0] = value[0:4]
