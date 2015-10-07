@@ -18,17 +18,7 @@ class Debug(HMD_Base):
     def __init__(self, error_callback):
         super(Debug, self).__init__('Debug', error_callback)
 
-    def isConnected(self):
-        """
-        Check if device is connected
-
-        :return: return True if the device is connected
-        :rtype: bool
-        """
-        print_debug('isConnected()')
-        return True
-
-    def init(self):
+    def init(self, context):
         """
         Initialize device
 
@@ -37,8 +27,8 @@ class Debug(HMD_Base):
         """
         print_debug('init()')
 
-        self._width = 512
-        self._height = 512
+        self._width = [512, 512]
+        self._height = [512, 512]
 
         return super(Debug, self).init()
 

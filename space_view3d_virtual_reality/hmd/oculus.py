@@ -25,22 +25,21 @@ class Oculus(HMD_Base):
         super(Oculus, self).__init__('Oculus', error_callback)
         checkModule('oculus_sdk_bridge')
 
-    def isConnected(self):
-        """
-        Check if device is connected
+        # self._debug()
 
-        :return: return True if the device is connected
-        :rtype: bool
-        """
-        try:
-            from bridge.oculus import HMD
-            return HMD.isConnected()
+    def _debug(self):
+        import bridge
+        import bridge_wrapper
 
-        except Exception as E:
-            self.error("isConnected", E, True)
-            return False
+        input = 3
+        device = bridge_wrapper.Debug_new(input)
+        factor = bridge_wrapper.Debug_multiplicationFactor()
+        print("Multiplication factor is {0}".format(factor))
 
-    def init(self):
+        output = bridge_wrapper.Debug_multiplicationResult(device)
+        print("Return of {0} is {1}".format(input, output))
+
+    def init(self, context):
         """
         Initialize device
 
@@ -52,12 +51,18 @@ class Oculus(HMD_Base):
             self._hmd = HMD()
 
             # gather arguments from HMD
-            self._width[0] = self._hmd.width_left
-            self._height[0] = self._hmd.height_left
-            self._width[1] = self._hmd.width_right
-            self._height[1] = self._hmd.height_right
-            self._projection_matrix[0] = self._hmd.projection_matrix_left
-            self._projection_matrix[1] = self._hmd.projection_matrix_right
+
+            near, far = self._getCameraClipping(context)
+
+            self.setEye(0)
+            self.width = self._hmd.width_left
+            self.height = self._hmd.height_left
+            self.projection_matrix = self._hmd.getProjectionMatrixLeft(near, far)
+
+            self.setEye(1)
+            self.width = self._hmd.width_right
+            self.height = self._hmd.height_right
+            self.projection_matrix = self._hmd.getProjectionMatrixRight(near, far)
 
             # initialize FBO
             super(Oculus, self).init()
@@ -89,7 +94,7 @@ class Oculus(HMD_Base):
             super(Oculus, self).loop(context)
 
         except Exception as E:
-            self.error("look", E, False)
+            self.error("loop", E, False)
             return False
 
         return True

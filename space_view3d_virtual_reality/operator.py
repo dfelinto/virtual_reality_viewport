@@ -136,18 +136,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._hmd = HMD(display_backend, self._error_callback)
         self._preview = Preview()
 
-        if not self._hmd.isConnected():
-            self.report({'ERROR'}, "Device not connected")
-            return False
-
-        if not self._hmd.init():
+        if not self._hmd.init(context):
             self.report({'ERROR'}, "Error initializing device")
             return False
 
         # get the data from device
-        width = self._hmd.width
-        height = self._hmd.height
-
         color_object = [0, 0]
         for i in range(2):
             self._hmd.setEye(i)

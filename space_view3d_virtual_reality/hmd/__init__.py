@@ -75,11 +75,19 @@ class HMD_Base:
 
     @property
     def width(self):
-        return self._width
+        return self._width[self._current_eye]
+
+    @width.setter
+    def width(self, value):
+        self._width[self._current_eye] = value
 
     @property
     def height(self):
-        return self._height
+        return self._height[self._current_eye]
+
+    @height.setter
+    def height(self, value):
+        self._height[self._current_eye] = value
 
     @property
     def offscreen_object(self):
@@ -97,21 +105,24 @@ class HMD_Base:
     def projection_matrix(self):
         return self._projection_matrix[self._current_eye]
 
+    @projection_matrix.setter
+    def projection_matrix(self, value):
+        print("projection_matrix", value)
+        matrix = Matrix()
+
+        matrix[0] = value[0:4]
+        matrix[1] = value[4:8]
+        matrix[2] = value[8:12]
+        matrix[3] = value[12:16]
+
+        self._projection_matrix[self._current_eye] = matrix
+
     @property
     def modelview_matrix(self):
         return self._modelview_matrix[self._current_eye]
 
     def setEye(self, eye):
         self._current_eye = int(bool(eye))
-
-    def isConnected(self):
-        """
-        Check if device is connected
-
-        :return: return True if the device is connected
-        :rtype: bool
-        """
-        assert False, "isConnected() not implemented for the \"{0}\" device".format(self._name)
 
     def init(self):
         """
@@ -122,7 +133,7 @@ class HMD_Base:
         """
         try:
             for i in range(2):
-                self._offscreen_object[i] = gpu.offscreen_object_create(self._width, self._height)
+                self._offscreen_object[i] = gpu.offscreen_object_create(self._width[i], self._height[i])
                 self._framebuffer_object[i] = self._offscreen_object[i].framebuffer_object
                 self._color_object[i] = self._offscreen_object[i].color_object
 
@@ -185,3 +196,13 @@ class HMD_Base:
         """
         TODO
 
+    def _getCamera(self, context):
+        return context.scene.camera
+
+    def _getCameraClipping(self, context):
+        camera_ob = self._getCamera(context)
+        camera = camera_ob.data
+
+        near = camera.clip_start
+        far = camera.clip_end
+        return near, far
