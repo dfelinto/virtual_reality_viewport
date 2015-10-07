@@ -9,11 +9,6 @@ The bridge code is hosted at Visgraf:
 http://git.impa.br/dfelinto/oculus_sdk_bridge
 """
 
-from mathutils import (
-        Vector,
-        Matrix,
-        )
-
 from . import HMD_Base
 
 from ..lib import (
@@ -84,13 +79,12 @@ class Oculus(HMD_Base):
         Get fresh tracking data
         """
         try:
-            TODO # the data will change
-
             data = self._hmd.update()
 
-            self._head_transformation = Matrix(data[0])
-            self._eye_pose[0] = Vector(data[1])
-            self._eye_pose[1] = Vector(data[2])
+            self._eye_orientation_raw[0] = data[0]
+            self._eye_orientation_raw[1] = data[2]
+            self._eye_position_raw[0] = data[1]
+            self._eye_position_raw[1] = data[3]
 
             # update matrices
             super(Oculus, self).loop(context)

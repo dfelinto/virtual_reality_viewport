@@ -3,7 +3,7 @@ TODO = True
 
 from mathutils import (
         Matrix,
-        Vector,
+        Quaternion,
         )
 
 import gpu
@@ -70,8 +70,8 @@ class HMD_Base:
         self._framebuffer_object = [0, 0]
         self._color_object = [0, 0]
         self._offscreen_object = [None, None]
-        self._eye_pose = [Vector((0.0, 0.0, 0.0)), Vector((0.0, 0.0, 0.0))]
-        self._head_transformation = Matrix.Identity(4)
+        self._eye_orientation_raw = [[i for i in range(4)], [i for i in range(4)]]
+        self._eye_position_raw = [[i for i in range(3)], [i for i in range(3)]]
 
     @property
     def width(self):
@@ -193,7 +193,19 @@ class HMD_Base:
         """
         Update OpenGL drawing matrices
         """
-        TODO
+        camera_matrix = self._getCamera(context).matrix_world.copy()
+        camera_matrix_inv = camera_matrix.inverted()
+
+        for i in range(2):
+            rotation_raw = self._eye_orientation_raw[i]
+            position_raw = self._eye_position_raw[i]
+
+            rotation = Quaternion(rotation_raw).to_matrix().to_4x4()
+            position = Matrix.Translation(position_raw)
+
+            transformation = position * rotation
+
+            self._modelview_matrix[i] = transformation * camera_matrix_inv
 
     def _getCamera(self, context):
         return context.scene.camera
