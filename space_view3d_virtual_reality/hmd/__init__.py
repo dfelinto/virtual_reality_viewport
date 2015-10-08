@@ -15,28 +15,32 @@ VERBOSE = True
 # Data structs
 # ############################################################
 
-def HMD(display_backend, error_callback):
+def HMD(display_backend, context, error_callback):
     """
     return the head mounted display device class
     (defined in another file)
 
     :param display_backend: backend engine
     :type display_backend: str
+    :param context: BPY context
+    :type context: bpy.types.Context
     :param error_callback: error handler
     :type error_callback: func(message, is_fatal)
     """
     from .oculus import Oculus
+    from .oculus_legacy import OculusLegacy
     from .debug import Debug
 
     displays = {
             'OCULUS':Oculus,
+            'OCULUS_LEGACY':OculusLegacy,
             'DEBUG':Debug,
             }
 
     if display_backend not in displays:
         assert False, "Display Backend \"{0}\" not implemented".format(display_backend)
 
-    return displays[display_backend](error_callback)
+    return displays[display_backend](context, error_callback)
 
 
 # ############################################################
@@ -59,7 +63,7 @@ class HMD_Base:
         "_modelview_matrix",
         }
 
-    def __init__(self, name, error_callback):
+    def __init__(self, name, context, error_callback):
         self._name = name
         self._error_callback = error_callback
         self._current_eye = 0
@@ -72,6 +76,8 @@ class HMD_Base:
         self._offscreen_object = [None, None]
         self._eye_orientation_raw = [[i for i in range(4)], [i for i in range(4)]]
         self._eye_position_raw = [[i for i in range(3)], [i for i in range(3)]]
+        self._scale = self._calculateScale(context)
+
 
     @property
     def width(self):
@@ -217,3 +223,35 @@ class HMD_Base:
         near = camera.clip_start
         far = camera.clip_end
         return near, far
+
+    def _calculateScale(self, context):
+        """
+        if BU != 1 meter, scale the transformations
+        """
+        scene = context.scene
+
+        unit_settings = scene.unit_settings
+        system = unit_settings.system
+
+        if system == 'NONE':
+            return None
+
+        elif system == 'METRIC':
+            return 1.0 / unit_settings.scale_length
+
+        elif system == 'IMPERIAL':
+            return 0.3048 / unit_settings.scale_length
+
+        else:
+            assert('Unit system not supported ({0})'.format(system))
+
+    def _scaleMovement(self, position):
+        """
+        if BU != 1 meter, scale the transformations
+        """
+        if self._scale is None:
+            return position
+
+        return [position[0] * self._scale,
+                position[1] * self._scale,
+                position[2] * self._scale]

@@ -16,23 +16,13 @@ from ..lib import (
         )
 
 class Oculus(HMD_Base):
-    def __init__(self, error_callback):
-        super(Oculus, self).__init__('Oculus', error_callback)
+    def __init__(self, context, error_callback):
+        super(Oculus, self).__init__('Oculus', context, error_callback)
         checkModule('oculus_sdk_bridge')
 
-        # self._debug()
-
-    def _debug(self):
-        import bridge
-        import bridge_wrapper
-
-        input = 3
-        device = bridge_wrapper.Debug_new(input)
-        factor = bridge_wrapper.Debug_multiplicationFactor()
-        print("Multiplication factor is {0}".format(factor))
-
-        output = bridge_wrapper.Debug_multiplicationResult(device)
-        print("Return of {0} is {1}".format(input, output))
+    def _getHMDClass(self):
+        from bridge.oculus import HMD
+        return HMD
 
     def init(self, context):
         """
@@ -42,7 +32,7 @@ class Oculus(HMD_Base):
         :rtype: bool
         """
         try:
-            from bridge.oculus import HMD
+            HMD = self._getHMDClass()
             self._hmd = HMD()
 
             # gather arguments from HMD

@@ -137,7 +137,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         vr.error_message = ""
 
         display_backend = getDisplayBackend(context)
-        self._hmd = HMD(display_backend, self._error_callback)
+        self._hmd = HMD(display_backend, context, self._error_callback)
         self._preview = Preview()
 
         if not self._hmd.init(context):
