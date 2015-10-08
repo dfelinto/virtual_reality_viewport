@@ -206,6 +206,9 @@ class HMD_Base:
             rotation_raw = self._eye_orientation_raw[i]
             position_raw = self._eye_position_raw[i]
 
+            # take scene units into consideration
+            position_raw = self._scaleMovement(position_raw)
+
             rotation = Quaternion(rotation_raw).to_matrix().to_4x4()
             position = Matrix.Translation(position_raw)
 
