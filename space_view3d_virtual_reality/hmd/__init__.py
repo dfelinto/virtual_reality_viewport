@@ -61,6 +61,8 @@ class HMD_Base:
         "_framebuffer_object",
         "_color_object",
         "_modelview_matrix",
+        "_near",
+        "_far",
         }
 
     def __init__(self, name, context, error_callback):
@@ -78,6 +80,7 @@ class HMD_Base:
         self._eye_position_raw = [[i for i in range(3)], [i for i in range(3)]]
         self._scale = self._calculateScale(context)
 
+        self._updateCameraClipping(context)
 
     @property
     def width(self):
@@ -110,17 +113,6 @@ class HMD_Base:
     @property
     def projection_matrix(self):
         return self._projection_matrix[self._current_eye]
-
-    @projection_matrix.setter
-    def projection_matrix(self, value):
-        matrix = Matrix()
-
-        matrix[0] = value[0:4]
-        matrix[1] = value[4:8]
-        matrix[2] = value[8:12]
-        matrix[3] = value[12:16]
-
-        self._projection_matrix[self._current_eye] = matrix
 
     @property
     def modelview_matrix(self):
@@ -155,6 +147,7 @@ class HMD_Base:
         """
         Get fresh tracking data
         """
+        self._updateCameraClipping(context)
         self.updateMatrices(context)
 
     def frameReady(self):
@@ -219,13 +212,12 @@ class HMD_Base:
     def _getCamera(self, context):
         return context.scene.camera
 
-    def _getCameraClipping(self, context):
+    def _updateCameraClipping(self, context):
         camera_ob = self._getCamera(context)
         camera = camera_ob.data
 
-        near = camera.clip_start
-        far = camera.clip_end
-        return near, far
+        self._near = camera.clip_start
+        self._far = camera.clip_end
 
     def _calculateScale(self, context):
         """
@@ -258,3 +250,14 @@ class HMD_Base:
         return [position[0] * self._scale,
                 position[1] * self._scale,
                 position[2] * self._scale]
+
+    def _convertMatrixTo4x4(self, value):
+        matrix = Matrix()
+
+        matrix[0] = value[0:4]
+        matrix[1] = value[4:8]
+        matrix[2] = value[8:12]
+        matrix[3] = value[12:16]
+
+        return matrix
+

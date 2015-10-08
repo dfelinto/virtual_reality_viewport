@@ -24,6 +24,21 @@ class Oculus(HMD_Base):
         from bridge.oculus import HMD
         return HMD
 
+    @property
+    def projection_matrix(self):
+        if self._current_eye:
+            matrix = self._hmd.getProjectionMatrixRight(self._near, self._far)
+        else:
+            matrix = self._hmd.getProjectionMatrixLeft(self._near, self._far)
+
+        self.projection_matrix = matrix
+        return super(Oculus, self).projection_matrix
+
+    @projection_matrix.setter
+    def projection_matrix(self, value):
+        self._projection_matrix[self._current_eye] = \
+                self._convertMatrixTo4x4(value)
+
     def init(self, context):
         """
         Initialize device
@@ -37,17 +52,13 @@ class Oculus(HMD_Base):
 
             # gather arguments from HMD
 
-            near, far = self._getCameraClipping(context)
-
             self.setEye(0)
             self.width = self._hmd.width_left
             self.height = self._hmd.height_left
-            self.projection_matrix = self._hmd.getProjectionMatrixLeft(near, far)
 
             self.setEye(1)
             self.width = self._hmd.width_right
             self.height = self._hmd.height_right
-            self.projection_matrix = self._hmd.getProjectionMatrixRight(near, far)
 
             # initialize FBO
             super(Oculus, self).init()
