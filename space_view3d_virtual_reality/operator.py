@@ -32,8 +32,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         description="",
         items=(("ENABLE", "Enable", "Enable"),
                ("DISABLE", "Disable", "Disable"),
+               ("TOGGLE", "Toggle", "Toggle"),
                ),
-        default="DISABLE",
+        default="TOGGLE",
         options={'SKIP_SAVE'},
         )
 
@@ -69,6 +70,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         vr = wm.virtual_reality
 
         is_enabled = vr.is_enabled
+
+        if self.action == 'TOGGLE':
+            self.action = 'DISABLE' if is_enabled else 'ENABLE'
 
         if self.action == 'DISABLE':
             if vr.is_enabled:
