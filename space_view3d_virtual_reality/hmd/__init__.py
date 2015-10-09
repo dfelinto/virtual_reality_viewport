@@ -259,5 +259,5 @@ class HMD_Base:
         matrix[2] = value[8:12]
         matrix[3] = value[12:16]
 
-        return matrix
+        return matrix.transposed()
 
