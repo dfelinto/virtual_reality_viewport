@@ -119,6 +119,11 @@ class HMD(wrapperHMD):
         :return: return True if the device was properly initialized
         :rtype: bool
         """
+        import oculusvr as ovr
+
+        # disable safety warning
+        ovr.ovrHmd_DismissHSWDisplay(self._device.hmd)
+
         self._eyeTextures[0].OGL.TexId = color_left
         self._eyeTextures[1].OGL.TexId = color_right
         return True
@@ -132,6 +137,8 @@ class HMD(wrapperHMD):
         """
         self._frame += 1
         poses = self._device.get_eye_poses(self._frame, self._eyeOffsets)
+
+        self._device.begin_frame(self._frame)
 
         for eye in range(2):
             self._orientation[eye] = poses[eye].Orientation.toList()
