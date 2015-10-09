@@ -130,7 +130,7 @@ class HMD_Base:
         """
         try:
             for i in range(2):
-                self._offscreen_object[i] = gpu.offscreen_object_create(self._width[i], self._height[i])
+                self._offscreen_object[i] = gpu.offscreen.new(self._width[i], self._height[i])
                 self._framebuffer_object[i] = self._offscreen_object[i].framebuffer_object
                 self._color_object[i] = self._offscreen_object[i].color_object
 
@@ -162,8 +162,7 @@ class HMD_Base:
         """
         try:
             for i in range(2):
-                if self._offscreen_object[i]:
-                    gpu.offscreen_object_free(self._offscreen_object[i])
+                self._offscreen_object[i] = None
 
         except Exception as E:
             print(E)

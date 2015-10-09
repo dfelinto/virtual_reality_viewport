@@ -170,7 +170,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             modelview_matrix = self._hmd.modelview_matrix
 
             # drawing
-            gpu.offscreen_object_draw(offscreen_object, projection_matrix, modelview_matrix)
+            offscreen_object.draw(projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
 
