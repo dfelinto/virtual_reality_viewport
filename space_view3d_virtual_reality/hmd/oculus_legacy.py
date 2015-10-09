@@ -2,11 +2,8 @@
 Oculus Legacy
 =============
 
-Oculus (oculus.com) head mounted display
-It uses a C app to connect with the SDK
-
-The bridge code is hosted at Visgraf:
-http://git.impa.br/dfelinto/oculus_sdk_bridge
+Oculus (oculus.com) head mounted display for OSX and Linux
+It uses a python wrapper to connect with the SDK
 """
 
 from . import HMD_Base
@@ -90,6 +87,10 @@ class HMD(wrapperHMD):
                 vp.Pos.y = 0
 
                 self._eyeOffsets[eye] = self._eyeRenderDescs[eye].HmdToEyeViewOffset
+
+            # Bug in the SDK leaves a program bound, so clear it
+            import bgl
+            bgl.glUseProgram(0)
 
         except Exception as E:
             raise E
