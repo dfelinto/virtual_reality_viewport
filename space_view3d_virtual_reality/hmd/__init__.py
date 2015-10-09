@@ -80,7 +80,7 @@ class HMD_Base:
         self._eye_position_raw = [[i for i in range(3)], [i for i in range(3)]]
         self._scale = self._calculateScale(context)
 
-        self._updateCameraClipping(context)
+        self._updateViewClipping(context)
 
     @property
     def width(self):
@@ -147,7 +147,7 @@ class HMD_Base:
         """
         Get fresh tracking data
         """
-        self._updateCameraClipping(context)
+        self._updateViewClipping(context)
         self.updateMatrices(context)
 
     def frameReady(self):
@@ -191,8 +191,7 @@ class HMD_Base:
         """
         Update OpenGL drawing matrices
         """
-        camera_matrix = self._getCamera(context).matrix_world.copy()
-        camera_matrix_inv = camera_matrix.inverted()
+        view_matrix = self._getViewMatrix(context)
 
         for i in range(2):
             rotation_raw = self._eye_orientation_raw[i]
@@ -206,17 +205,31 @@ class HMD_Base:
 
             transformation = position * rotation
 
-            self._modelview_matrix[i] = transformation * camera_matrix_inv
+            self._modelview_matrix[i] = transformation * view_matrix
 
-    def _getCamera(self, context):
-        return context.scene.camera
+    def _getViewMatrix(self, context):
+        region = context.region_data
 
-    def _updateCameraClipping(self, context):
-        camera_ob = self._getCamera(context)
-        camera = camera_ob.data
+        if region.view_perspective == 'CAMERA':
+            space = context.space_data
+            camera = space.camera
+            return camera.matrix_world.copy().inverted()
+        else:
+            return region.view_matrix.copy()
 
-        self._near = camera.clip_start
-        self._far = camera.clip_end
+    def _updateViewClipping(self, context):
+        space = context.space_data
+        region = context.region_data
+
+        if region.view_perspective == 'CAMERA':
+            camera_ob = space.camera
+            camera = camera_ob.data
+
+            self._near = camera.clip_start
+            self._far = camera.clip_end
+        else:
+            self._near = space.clip_start
+            self._far = space.clip_end
 
     def _calculateScale(self, context):
         """
