@@ -64,7 +64,7 @@ class Oculus(HMD_Base):
             super(Oculus, self).init()
 
             # send it back to HMD
-            if not self._hmd.setup(self._framebuffer_object[0], self._framebuffer_object[1]):
+            if not self._setup():
                 raise Exception("Failed to setup HMD")
 
         except Exception as E:
@@ -74,6 +74,9 @@ class Oculus(HMD_Base):
 
         else:
             return True
+
+    def _setup(self):
+        return self._hmd.setup(self._framebuffer_object[0], self._framebuffer_object[1])
 
     def loop(self, context):
         """

@@ -17,66 +17,16 @@ from ..lib import (
         checkModule,
         )
 
-TODO = True
-
 class OculusLegacy(Oculus):
     def __init__(self, context, error_callback):
         HMD_Base.__init__(self, 'Oculus Legacy', context, error_callback)
         checkModule('python-ovrsdk')
-        self._version = 2 # DK 2 by default
 
     def _getHMDClass(self):
         return HMD
 
-    def _setVersion(self, product_name):
-        try:
-            if product_name.find(b'DK2') != -1:
-                self._version = 2
-
-            elif product_name.find(b'DK1') != -1:
-                self._version = 1
-
-            else:
-                raise Exception
-
-        except:
-            print("Error guessing device version (\"{0}\")".format(product_name))
-
-    @property
-    def shader_file(self):
-        if self._version == 1:
-            return 'oculus_dk1.glsl'
-        else:
-            return 'oculus_dk2.glsl'
-
-    def _getMatrix(self):
-        from oculusvr import Hmd
-        from mathutils import (
-                Quaternion,
-                Matrix,
-                )
-
-        if self._hmd and Hmd.detect() == 1:
-            self._frame += 1
-
-            poses = self._hmd.get_eye_poses(self._frame, self._eyesOffset)
-
-            # oculus may be returning the matrix for both eyes
-            # but we are using a single eye without offset
-
-            rotation_raw = poses[0].Orientation.toList()
-            position_raw = poses[0].Position.toList()
-
-            # take scene units into consideration
-            position_raw = self._scaleMovement(position_raw)
-
-            rotation = Quaternion(rotation_raw).to_matrix().to_4x4()
-            position = Matrix.Translation(position_raw)
-
-            matrix = position * rotation
-            return matrix
-
-        return None
+    def _setup(self):
+        return self._hmd.setup(self._color_object[0], self._color_object[1])
 
 
 checkModule('oculus_sdk_bridge')
@@ -99,7 +49,6 @@ class HMD(wrapperHMD):
             return
 
         try:
-
             debug = not Hmd.detect()
             self._device = Hmd(debug=debug)
 
@@ -127,6 +76,7 @@ class HMD(wrapperHMD):
                 rc.PlatformData[i] = 0
 
             self._eyeRenderDescs = self._device.configure_rendering(rc, self._fovPorts)
+
             for eye in range(2):
                 size = self._device.get_fov_texture_size(eye, self._fovPorts[eye])
                 self._width[eye], self._height[eye] = size.w, size.h
@@ -151,7 +101,6 @@ class HMD(wrapperHMD):
             self._device.destroy()
             self._device = None
             ovr.Hmd.shutdown()
-        TODO
 
     def _updateProjectionMatrix(self, near, far):
         import oculusvr as ovr
@@ -159,18 +108,20 @@ class HMD(wrapperHMD):
         self.projection_matrix_left = ovr.Hmd.get_perspective(self._fovPorts[0], near, far, True).toList()
         self.projection_matrix_right = ovr.Hmd.get_perspective(self._fovPorts[1], near, far, True).toList()
 
-    def setup(self, framebuffer_left, framebuffer_right):
+    def setup(self, color_left, color_right):
         """
         Initialize device
 
-        :param framebuffer_object_left: framebuffer object created externally
-        :type framebuffer_object_left: GLuint
-        :param framebuffer_object_right: framebuffer object created externally
-        :type framebuffer_object_right: GLuint
+        :param color_object_left: color object created externally
+        :type color_object_left: GLuint
+        :param color_object_right: color object created externally
+        :type color_object_right: GLuint
         :return: return True if the device was properly initialized
         :rtype: bool
         """
-        return TODO
+        self._eyeTextures[0].OGL.TexId = color_left
+        self._eyeTextures[1].OGL.TexId = color_right
+        return True
 
     def update(self):
         """
@@ -181,10 +132,12 @@ class HMD(wrapperHMD):
         """
         self._frame += 1
         poses = self._device.get_eye_poses(self._frame, self._eyeOffsets)
+
         for eye in range(2):
             self._orientation[eye] = poses[eye].Orientation.toList()
             self._position[eye] = poses[eye].Position.toList()
 
+        self._poses = poses
         return super(HMD, self).update()
 
     def frameReady(self):
@@ -194,7 +147,8 @@ class HMD(wrapperHMD):
         :return: return True if success
         :rtype: bool
         """
-        return TODO
+        self._device.end_frame(self._poses, self._eyeTextures)
+        return True
 
     def reCenter(self):
         """
