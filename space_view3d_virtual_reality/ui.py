@@ -25,15 +25,22 @@ class VirtualRealityPanel(bpy.types.Panel):
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="X").action='DISABLE'
 
             col.separator()
-            # col.prop(vr, "preview_scale", text="Preview")
+            row = col.row()
 
-            col.label(text=vr.error_message)
+            row.prop(vr, "use_preview")
+            sub = row.column()
+            sub.active = vr.use_preview
+            sub.prop(vr, "preview_scale", text="Scale")
 
             col.separator()
             col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
 
             col.separator()
+            col.label(text="Tracking:")
             col.row().prop(vr, "tracking_mode", expand=True)
+
+            col.separator()
+            col.label(text=vr.error_message)
 
 
 # ############################################################

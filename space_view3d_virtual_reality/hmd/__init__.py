@@ -56,6 +56,7 @@ class HMD_Base:
         "_height",
         "_projection_matrix",
         "_head_transformation",
+        "_is_direct_mode",
         "_eye_pose",
         "_offscreen_object",
         "_framebuffer_object",
@@ -65,8 +66,9 @@ class HMD_Base:
         "_far",
         }
 
-    def __init__(self, name, context, error_callback):
+    def __init__(self, name, is_direct_mode, context, error_callback):
         self._name = name
+        self._is_direct_mode = is_direct_mode
         self._error_callback = error_callback
         self._current_eye = 0
         self._width = [0, 0]
@@ -81,6 +83,10 @@ class HMD_Base:
         self._scale = self._calculateScale(context)
 
         self._updateViewClipping(context)
+
+    @property
+    def is_direct_mode(self):
+        return self._is_direct_mode
 
     @property
     def width(self):

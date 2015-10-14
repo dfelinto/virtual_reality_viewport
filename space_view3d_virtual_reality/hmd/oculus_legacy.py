@@ -16,7 +16,7 @@ from ..lib import (
 
 class OculusLegacy(Oculus):
     def __init__(self, context, error_callback):
-        HMD_Base.__init__(self, 'Oculus Legacy', context, error_callback)
+        HMD_Base.__init__(self, 'Oculus Legacy', False, context, error_callback)
         checkModule('python-ovrsdk')
 
     def _getHMDClass(self):

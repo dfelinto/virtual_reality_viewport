@@ -16,7 +16,7 @@ def print_debug(*args):
 
 class Debug(HMD_Base):
     def __init__(self, context, error_callback):
-        super(Debug, self).__init__('Debug', context, error_callback)
+        super(Debug, self).__init__('Debug', False, context, error_callback)
 
     def init(self, context):
         """

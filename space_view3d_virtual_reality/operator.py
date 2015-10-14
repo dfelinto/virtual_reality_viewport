@@ -10,8 +10,8 @@ from .lib import (
         getDisplayBackend,
         )
 
-import gpu
 
+TODO = False
 
 
 # ############################################################
@@ -36,7 +36,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _hmd = None
     _timer = None
     _handle = None
-    _area_hash = -1
+    _hash_slave = -1
+    _hash_master = -1
+    _slave_setup = False
 
     action = bpy.props.EnumProperty(
         description="",
@@ -120,17 +122,14 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """garbage collect"""
         # change it so the original modal operator will clean things up
         wm = context.window_manager
-        vr = wm.virtual_reality
-
-        vr.is_enabled = False
-        vr.error_message = ""
+        wm.virtual_reality.reset()
 
     def _quit(self, context):
         """actual quit"""
 
         if self._handle:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            del self._handle
+            self._handle = None
 
         self._preview.quit()
 
@@ -155,6 +154,20 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._hmd = HMD(display_backend, context, self._error_callback)
         self._preview = Preview()
 
+        self._hash_master = hash(context.area)
+
+        # setup modal
+        self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
+        wm.modal_handler_add(self)
+
+        if self._hmd.is_direct_mode:
+            self._masterInit(context)
+        else:
+            return self._slaveHook(context)
+
+        return True
+
+    def _init(self, context):
         if not self._hmd.init(context):
             self.report({'ERROR'}, "Error initializing device")
             return False
@@ -166,13 +179,46 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             color_object[i] = self._hmd.color_object
 
         self._preview.init(color_object[0], color_object[1])
-        self._area_hash = hash(context.area)
-
-        # setup modal
-        self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
-        wm.modal_handler_add(self)
-
         return True
+
+    def _masterInit(self, context):
+        return self._init(context)
+
+    def _slaveInit(self, context):
+        self._slave_setup = True
+
+        if not self._init(context):
+            self.quit(context)
+
+    def _slaveHook(self, context):
+        self._hash_slave = -1
+        self._slave_setup = False
+
+        hashes = []
+
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    hashes.append(hash(area))
+
+        bpy.ops.screen.area_dupli('INVOKE_DEFAULT')
+
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                if area.type != 'VIEW_3D':
+                    continue
+
+                _hash = hash(area)
+
+                try:
+                    hashes.remove(_hash)
+
+                except ValueError:
+                    self._hash_slave = _hash
+                    print('Success finding slave')
+                    return True
+
+        return False
 
     def _commands(self, context):
         """
@@ -210,21 +256,38 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         self._hmd.frameReady()
 
-    def _draw_callback_px(self, context):
-        """callback function, run every time the viewport is refreshed"""
+    def _drawMaster(self, context):
+        wm = context.window_manager
+        vr = wm.virtual_reality
 
-        area = context.area
-        if not self._area_hash == hash(area):
+        if self._hmd.is_direct_mode:
+            self._loop(context)
+
+        if vr.use_preview:
+            self._preview.loop(vr.preview_scale)
+
+    def _drawSlave(self, context):
+        if self._hmd.is_direct_mode:
             return
+
+        if not self._slave_setup:
+            self._slaveInit(context)
 
         self._loop(context)
         area.tag_redraw()
 
+    def _draw_callback_px(self, context):
         """
-        wm = context.window_manager
-        vr = wm.virtual_reality
-        self._preview.loop(vr.preview_scale)
+        callback function, run every time the viewport is refreshed
         """
+        area = context.area
+        hash_area = hash(area)
+
+        if hash_area == self._hash_slave:
+            self._drawSlave(context)
+
+        elif hash_area == self._hash_master:
+            self._drawMaster(context)
 
     def _error_callback(self, message, is_fatal):
         """
@@ -270,11 +333,16 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             default=False,
             )
 
+    use_preview = BoolProperty(
+        name="Preview",
+        default=False,
+        )
+
     preview_scale = IntProperty(
             name="Preview Scale",
             min=0,
             max=100,
-            default=100,
+            default=20,
             subtype='PERCENTAGE',
             )
 
@@ -305,9 +373,13 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         self.commands.remove(0)
         return action
 
-    def command_reset(self):
+    def reset(self):
         while self.commands:
             self.commands.remove(0)
+
+        self.use_preview = False
+        self.error_message = ""
+        self.is_enabled = False
 
 
 # ############################################################
@@ -317,21 +389,13 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
 @persistent
 def virtual_reality_load_pre(dummy):
     wm = bpy.context.window_manager
-    vr = wm.virtual_reality
-
-    vr.is_enabled = False
-    vr.command_reset()
+    wm.virtual_reality.reset()
 
 
 @persistent
 def virtual_reality_load_post(dummy):
     wm = bpy.context.window_manager
-    vr = wm.virtual_reality
-
-    vr.is_enabled = False
-    vr.command_reset()
-
-    vr.error_message = ""
+    wm.virtual_reality.reset()
 
 
 # ############################################################
