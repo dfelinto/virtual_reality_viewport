@@ -20,7 +20,18 @@ TODO = False
 
 class Commands:
     recenter = 'RECENTER'
+    fullscreen = 'FULLSCREEN'
     test = 'TEST'
+
+
+class SlaveStatus:
+    non_setup    = 0  # initial
+    dupli        = 1  # view3d duplicated
+    uiless       = 2  # view3d without UI
+    waituser     = 3  # waiting for user to move window to HMD
+    usermoved    = 4  # user moved window
+    ready        = 5  # all went well
+    error        = 6  # something didn't work
 
 
 # ############################################################
@@ -38,7 +49,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _handle = None
     _hash_slave = -1
     _hash_master = -1
-    _slave_setup = False
+    _slave_status = 0
 
     action = bpy.props.EnumProperty(
         description="",
@@ -46,6 +57,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                ("DISABLE", "Disable", "Disable"),
                ("TOGGLE", "Toggle", "Toggle"),
                ("RECENTER", "Re-Center", "Re-Center tracking data"),
+               ("FULLSCREEN", "Fullscreen", "Make slave fullscreen"),
                ),
         default="TOGGLE",
         options={'SKIP_SAVE'},
@@ -70,13 +82,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             area.tag_redraw()
             return {'FINISHED'}
 
-        """
         if event.type == 'TIMER':
-            self.loop(context)
-
-            if vr.preview_scale and context.area:
-                area.tag_redraw()
-        """
+            TODO # only if extended mode
+            area.tag_redraw()
 
         return {'PASS_THROUGH'}
 
@@ -113,6 +121,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             vr.command_push(Commands.recenter)
             return {'FINISHED'}
 
+        elif self.action == 'FULLSCREEN':
+            vr.command_push(Commands.fullscreen)
+            return {'FINISHED'}
+
         else:
             assert False, "action \"{0}\" not implemented".format(self.action)
 
@@ -126,6 +138,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
     def _quit(self, context):
         """actual quit"""
+
+        if self._timer:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+            self._timer = None
 
         if self._handle:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
@@ -149,6 +166,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         vr.is_enabled = True
         vr.error_message = ""
+        vr.is_slave_setup = False
 
         display_backend = getDisplayBackend(context)
         self._hmd = HMD(display_backend, context, self._error_callback)
@@ -157,13 +175,15 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._hash_master = hash(context.area)
 
         # setup modal
+        self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
         self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
         wm.modal_handler_add(self)
 
         if self._hmd.is_direct_mode:
-            self._masterInit(context)
+            self._init(context)
         else:
-            return self._slaveHook(context)
+            vr.is_slave_setup = True
+            return self._slaveSetup(context)
 
         return True
 
@@ -181,18 +201,43 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._preview.init(color_object[0], color_object[1])
         return True
 
-    def _masterInit(self, context):
-        return self._init(context)
+    def _slaveSetup(self, context):
+        ok = True
 
-    def _slaveInit(self, context):
-        self._slave_setup = True
+        if self._slave_status == SlaveStatus.error:
+            return False
 
-        if not self._init(context):
+        elif self._slave_status == SlaveStatus.non_setup:
+            ok = self._slaveHook(context, SlaveStatus.dupli)
+            self._slave_status = SlaveStatus.dupli
+
+        elif self._slave_status == SlaveStatus.dupli:
+            ok = self._slaveHook(context, SlaveStatus.uiless)
+            self._slave_status = SlaveStatus.waituser
+
+        elif self._slave_status == SlaveStatus.waituser:
+            # waiting for the user input
+            return True
+
+        elif self._slave_status == SlaveStatus.usermoved:
+            context.window_manager.virtual_reality.is_slave_setup = False
+            bpy.ops.wm.window_fullscreen_toggle()
+
+            ok = self._init(context)
+            self._slave_status = SlaveStatus.ready
+
+        else:
+            assert False, "_slaveSetup: Slave status \"{0}\" not defined".format(self._slave_status)
+
+        if not ok:
+            self._slave_status = SlaveStatus.error
             self.quit(context)
 
-    def _slaveHook(self, context):
+        return ok
+
+    def _slaveHook(self, context, mode=''):
         self._hash_slave = -1
-        self._slave_setup = False
+        self._slave_status = SlaveStatus.non_setup
 
         hashes = []
 
@@ -201,7 +246,14 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 if area.type == 'VIEW_3D':
                     hashes.append(hash(area))
 
-        bpy.ops.screen.area_dupli('INVOKE_DEFAULT')
+        if mode == SlaveStatus.dupli:
+            bpy.ops.screen.area_dupli('INVOKE_DEFAULT')
+
+        elif mode == SlaveStatus.uiless:
+            bpy.ops.screen.screen_full_area(use_hide_panels=True)
+
+        else:
+            assert False, "_slaveHook: Slave status \"{0}\" not defined".format(self._slave_status)
 
         for screen in bpy.data.screens:
             for area in screen.areas:
@@ -234,14 +286,20 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 if self._hmd:
                     self._hmd.reCenter()
 
+            elif command == Commands.fullscreen:
+                self._slave_status = SlaveStatus.usermoved
+                self._slaveSetup(context)
+
             elif command == Commands.test:
                 print("Testing !!!")
+
+            else:
+                assert False, "_commands: command \"{0}\" not implemented"
 
     def _loop(self, context):
         """
         Get fresh tracking data and render into the FBO
         """
-        self._commands(context)
         self._hmd.loop(context)
 
         for i in range(2):
@@ -261,6 +319,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         vr = wm.virtual_reality
 
         if self._hmd.is_direct_mode:
+            self._commands(context)
             self._loop(context)
 
         if vr.use_preview:
@@ -270,11 +329,20 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         if self._hmd.is_direct_mode:
             return
 
-        if not self._slave_setup:
-            self._slaveInit(context)
+        self._commands(context)
 
-        self._loop(context)
-        area.tag_redraw()
+        if self._slave_status == SlaveStatus.ready:
+            self._loop(context)
+
+        elif self._slave_status == SlaveStatus.waituser:
+            self._drawDisplayMessage()
+
+        else:
+            self._slaveSetup(context)
+
+    def _drawDisplayMessage(self):
+        """Message telling user to move the window the HMD display"""
+        TODO
 
     def _draw_callback_px(self, context):
         """
@@ -283,7 +351,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         area = context.area
         hash_area = hash(area)
 
-        if hash_area == self._hash_slave:
+        if (hash_area == self._hash_slave):
             self._drawSlave(context)
 
         elif hash_area == self._hash_master:
@@ -316,11 +384,13 @@ from bpy.props import (
         IntProperty,
         )
 
+
 class VirtualRealityCommandInfo(bpy.types.PropertyGroup):
     action = EnumProperty(
         name="Action",
         items=(("NONE", "None", ""),
                (Commands.recenter, "Re-Center", ""),
+               (Commands.fullscreen, "Fullscreen", ""),
                (Commands.test, "Test", ""),
                ),
         default="NONE",
@@ -360,6 +430,10 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         default="ALL",
         )
 
+    is_slave_setup = BoolProperty(
+        default = False,
+        )
+
     commands = CollectionProperty(type=VirtualRealityCommandInfo)
 
 
@@ -380,6 +454,7 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         self.use_preview = False
         self.error_message = ""
         self.is_enabled = False
+        self.is_slave_setup = False
 
 
 # ############################################################

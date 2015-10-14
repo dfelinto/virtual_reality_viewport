@@ -23,24 +23,28 @@ class VirtualRealityPanel(bpy.types.Panel):
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="PLAY").action='ENABLE'
         else:
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="X").action='DISABLE'
-
             col.separator()
-            row = col.row()
 
-            row.prop(vr, "use_preview")
-            sub = row.column()
-            sub.active = vr.use_preview
-            sub.prop(vr, "preview_scale", text="Scale")
+            if vr.is_slave_setup:
+                col.operator("view3d.virtual_reality_display", text="Start", icon="CAMERA_STEREO").action='FULLSCREEN'
 
-            col.separator()
-            col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
+            else:
+                row = col.row()
 
-            col.separator()
-            col.label(text="Tracking:")
-            col.row().prop(vr, "tracking_mode", expand=True)
+                row.prop(vr, "use_preview")
+                sub = row.column()
+                sub.active = vr.use_preview
+                sub.prop(vr, "preview_scale", text="Scale")
 
-            col.separator()
-            col.label(text=vr.error_message)
+                col.separator()
+                col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
+
+                col.separator()
+                col.label(text="Tracking:")
+                col.row().prop(vr, "tracking_mode", expand=True)
+
+                col.separator()
+                col.label(text=vr.error_message)
 
 
 # ############################################################
