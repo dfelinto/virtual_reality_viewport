@@ -205,7 +205,7 @@ class HMD_Base:
 
             transformation = position * rotation
 
-            self._modelview_matrix[i] = transformation * view_matrix
+            self._modelview_matrix[i] = transformation.inverted() * view_matrix
 
     def _getViewMatrix(self, context):
         region = context.region_data
