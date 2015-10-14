@@ -200,19 +200,30 @@ class HMD_Base:
         """
         Update OpenGL drawing matrices
         """
+        tracking_mode = context.window_manager.virtual_reality.tracking_mode
+
         view_matrix = self._getViewMatrix(context)
 
         for i in range(2):
+            if tracking_mode == 'NONE':
+                self._modelview_matrix[i] = view_matrix
+                continue
+
             rotation_raw = self._eye_orientation_raw[i]
-            position_raw = self._eye_position_raw[i]
-
-            # take scene units into consideration
-            position_raw = self._scaleMovement(position_raw)
-
             rotation = Quaternion(rotation_raw).to_matrix().to_4x4()
-            position = Matrix.Translation(position_raw)
 
-            transformation = position * rotation
+            if tracking_mode == 'ALL':
+                position_raw = self._eye_position_raw[i]
+
+                # take scene units into consideration
+                position_raw = self._scaleMovement(position_raw)
+                position = Matrix.Translation(position_raw)
+
+                transformation = position * rotation
+
+            else: # 'ROTATION'
+                # rotation only, ignore the positional data
+                transformation = rotation
 
             self._modelview_matrix[i] = transformation.inverted() * view_matrix
 
