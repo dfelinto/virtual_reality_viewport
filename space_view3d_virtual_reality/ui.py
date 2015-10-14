@@ -29,6 +29,12 @@ class VirtualRealityPanel(bpy.types.Panel):
 
             col.label(text=vr.error_message)
 
+            col.separator()
+            col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
+
+            col.separator()
+            col.row().prop(vr, "tracking_mode", expand=True)
+
 
 # ############################################################
 # Un/Registration

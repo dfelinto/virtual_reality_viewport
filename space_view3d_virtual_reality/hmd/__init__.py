@@ -156,6 +156,15 @@ class HMD_Base:
         """
         assert False, "frameReady() not implemented for the \"{0}\" device".format(self._name)
 
+    def reCenter(self):
+        """
+        Re-center the HMD device
+
+        :return: return True if success
+        :rtype: bool
+        """
+        assert False, "reCenter() not implemented for the \"{0}\" device".format(self._name)
+
     def quit(self):
         """
         Garbage collection

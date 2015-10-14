@@ -13,6 +13,16 @@ from .lib import (
 import gpu
 
 
+
+# ############################################################
+# Commands
+# ############################################################
+
+class Commands:
+    recenter = 'RECENTER'
+    test = 'TEST'
+
+
 # ############################################################
 # Main Operator
 # ############################################################
@@ -33,6 +43,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         items=(("ENABLE", "Enable", "Enable"),
                ("DISABLE", "Disable", "Disable"),
                ("TOGGLE", "Toggle", "Toggle"),
+               ("RECENTER", "Re-Center", "Re-Center tracking data"),
                ),
         default="TOGGLE",
         options={'SKIP_SAVE'},
@@ -77,15 +88,15 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self.action = 'DISABLE' if is_enabled else 'ENABLE'
 
         if self.action == 'DISABLE':
-            if vr.is_enabled:
+            if is_enabled:
                 self.quit(context)
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'}, "Virtual Reality Display is not enabled")
                 return {'CANCELLED'}
 
-        else: # ENABLE
-            if vr.is_enabled:
+        elif self.action == 'ENABLE':
+            if is_enabled:
                 self.report({'ERROR'}, "Virtual Reality Display is already enabled")
                 return {'CANCELLED'}
 
@@ -93,8 +104,15 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 return {'RUNNING_MODAL'}
             else:
                 # quit right away
-                wm.virtual_reality.is_enabled = False
+                vr.is_enabled = False
                 self._quit(context)
+
+        elif self.action == 'RECENTER':
+            vr.command_push(Commands.recenter)
+            return {'FINISHED'}
+
+        else:
+            assert False, "action \"{0}\" not implemented".format(self.action)
 
         return {'CANCELLED'}
 
@@ -156,10 +174,28 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         return True
 
+    def _commands(self, context):
+        """
+        Process any pending command from the main window
+        """
+        wm = context.window_manager
+        vr = wm.virtual_reality
+
+        while vr.commands:
+            command = vr.command_pop()
+
+            if command == Commands.recenter:
+                if self._hmd:
+                    self._hmd.reCenter()
+
+            elif command == Commands.test:
+                print("Testing !!!")
+
     def _loop(self, context):
         """
         Get fresh tracking data and render into the FBO
         """
+        self._commands(context)
         self._hmd.loop(context)
 
         for i in range(2):
@@ -209,13 +245,32 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 # Global Properties
 # ############################################################
 
+from bpy.props import (
+        BoolProperty,
+        CollectionProperty,
+        EnumProperty,
+        StringProperty,
+        IntProperty,
+        )
+
+class VirtualRealityCommandInfo(bpy.types.PropertyGroup):
+    action = EnumProperty(
+        name="Action",
+        items=(("NONE", "None", ""),
+               (Commands.recenter, "Re-Center", ""),
+               (Commands.test, "Test", ""),
+               ),
+        default="NONE",
+        )
+
+
 class VirtualRealityInfo(bpy.types.PropertyGroup):
-    is_enabled = bpy.props.BoolProperty(
+    is_enabled = BoolProperty(
             name="Enabled",
             default=False,
             )
 
-    preview_scale = bpy.props.IntProperty(
+    preview_scale = IntProperty(
             name="Preview Scale",
             min=0,
             max=100,
@@ -223,9 +278,36 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             subtype='PERCENTAGE',
             )
 
-    error_message = bpy.props.StringProperty(
+    error_message = StringProperty(
             name="Error Message",
             )
+
+    tracking_mode = EnumProperty(
+        name="Tracking Mode",
+        description="",
+        items=(("ALL", "All", ""),
+               ("ROTATION", "Rotation Only", "Ignore positional tracking data"),
+               ("NONE", "None", "No tracking"),
+               ),
+        default="ALL",
+        )
+
+    commands = CollectionProperty(type=VirtualRealityCommandInfo)
+
+
+    def command_push(self, action):
+        command = self.commands.add()
+        command.action = action
+
+    def command_pop(self):
+        command = self.commands[0]
+        action = command.action
+        self.commands.remove(0)
+        return action
+
+    def command_reset(self):
+        while self.commands:
+            self.commands.remove(0)
 
 
 # ############################################################
@@ -235,7 +317,10 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
 @persistent
 def virtual_reality_load_pre(dummy):
     wm = bpy.context.window_manager
-    wm.virtual_reality.is_enabled = False
+    vr = wm.virtual_reality
+
+    vr.is_enabled = False
+    vr.command_reset()
 
 
 @persistent
@@ -244,6 +329,8 @@ def virtual_reality_load_post(dummy):
     vr = wm.virtual_reality
 
     vr.is_enabled = False
+    vr.command_reset()
+
     vr.error_message = ""
 
 
@@ -256,6 +343,7 @@ def register():
     bpy.app.handlers.load_pre.append(virtual_reality_load_post)
 
     bpy.utils.register_class(VirtualRealityDisplayOperator)
+    bpy.utils.register_class(VirtualRealityCommandInfo)
     bpy.utils.register_class(VirtualRealityInfo)
     bpy.types.WindowManager.virtual_reality = bpy.props.PointerProperty(
             name="virtual_reality",
@@ -271,4 +359,5 @@ def unregister():
     bpy.utils.unregister_class(VirtualRealityDisplayOperator)
     del bpy.types.WindowManager.virtual_reality
     bpy.utils.unregister_class(VirtualRealityInfo)
+    bpy.utils.unregister_class(VirtualRealityCommandInfo)
 

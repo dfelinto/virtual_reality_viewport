@@ -112,6 +112,15 @@ class Oculus(HMD_Base):
 
         return True
 
+    def reCenter(self):
+        """
+        Re-center the HMD device
+
+        :return: return True if success
+        :rtype: bool
+        """
+        return self._hmd.reCenter()
+
     def quit(self):
         """
         Garbage collection
