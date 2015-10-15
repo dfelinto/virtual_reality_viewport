@@ -338,14 +338,47 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._loop(context)
 
         elif self._slave_status == SlaveStatus.waituser:
-            self._drawDisplayMessage()
+            self._drawDisplayMessage(context)
 
         else:
             self._slaveSetup(context)
 
-    def _drawDisplayMessage(self):
-        """Message telling user to move the window the HMD display"""
-        TODO
+    def _drawDisplayMessage(self, context):
+        """
+        Message telling user to move the window the HMD display
+        """
+        window = context.window
+        width = window.width
+        height = window.height
+
+        #glColor4f(1.0, 1.0, 1.0, 1.0)
+        font_id = 0
+
+        # draw some text
+        x = int(0.1 * width)
+        y = int(0.5 * height)
+        font_size = int(width * 0.035)
+
+        from blf import (
+                SHADOW,
+                enable,
+                shadow,
+                shadow_offset,
+                position,
+                size,
+                draw,
+                disable,
+                )
+
+        enable(font_id, SHADOW)
+        shadow(font_id, 5, 0.0, 0.0, 0.0, 1.0)
+        shadow_offset(font_id, -2, -2)
+        position(font_id, x, y, 0)
+        size(font_id, font_size, 72)
+        draw(font_id, "1. Move this window to the external HMD display")
+        position(font_id, x, y - int(font_size * 1.5), 0)
+        draw(font_id, "2. Select \"Start\" in the main window")
+        disable(font_id, SHADOW)
 
     def _draw_callback_px(self, context):
         """
