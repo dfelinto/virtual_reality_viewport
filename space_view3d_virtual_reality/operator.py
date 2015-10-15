@@ -21,18 +21,23 @@ TODO = False
 class Commands:
     recenter = 'RECENTER'
     fullscreen = 'FULLSCREEN'
+    play = 'PLAY'
+    pause = 'PAUSE'
     test = 'TEST'
 
 
 class SlaveStatus:
-    non_setup    = 0  # initial
-    dupli        = 1  # view3d duplicated
-    uiless       = 2  # view3d without UI
-    waituser     = 3  # waiting for user to move window to HMD
-    usermoved    = 4  # user moved window
-    fullscreen   = 5  # wait a bit to prevent a crash on OSX
-    ready        = 6  # all went well
-    error        = 7  # something didn't work
+    non_setup    = 0   # initial
+    dupli        = 1   # view3d duplicated
+    uiless       = 2   # view3d without UI
+    waituser     = 3   # waiting for user to move window to HMD
+    usermoved    = 4   # user moved window
+    fullscreen   = 5   # wait a bit to prevent a crash on OSX
+    ready        = 6   # all went well
+    play         = 8   # play
+    pause        = 9   # pause
+    paused       = 10  # paused
+    error        = 11  # something didn't work
 
 
 # ############################################################
@@ -60,6 +65,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                ("TOGGLE", "Toggle", "Toggle"),
                ("RECENTER", "Re-Center", "Re-Center tracking data"),
                ("FULLSCREEN", "Fullscreen", "Make slave fullscreen"),
+               ("PLAY", "Play", ""),
+               ("PAUSE", "Pause", ""),
                ),
         default="TOGGLE",
         options={'SKIP_SAVE'},
@@ -125,6 +132,14 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         elif self.action == 'FULLSCREEN':
             vr.command_push(Commands.fullscreen)
+            return {'FINISHED'}
+
+        elif self.action == 'PLAY':
+            vr.command_push(Commands.play)
+            return {'FINISHED'}
+
+        elif self.action == 'PAUSE':
+            vr.command_push(Commands.pause)
             return {'FINISHED'}
 
         else:
@@ -234,7 +249,12 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         elif self._slave_status == SlaveStatus.fullscreen:
             context.window_manager.virtual_reality.is_slave_setup = False
             ok = self._init(context)
+
+        elif self._slave_status == SlaveStatus.play:
             self._slave_status = SlaveStatus.ready
+
+        elif self._slave_status == SlaveStatus.pause:
+            self._slave_status = SlaveStatus.paused
 
         else:
             assert False, "_slaveSetup: Slave status \"{0}\" not defined".format(self._slave_status)
@@ -301,6 +321,14 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 self._slave_status = SlaveStatus.usermoved
                 self._slaveSetup(context)
 
+            elif command == Commands.play:
+                self._slave_status = SlaveStatus.play
+                self._slaveSetup(context)
+
+            elif command == Commands.pause:
+                self._slave_status = SlaveStatus.pause
+                self._slaveSetup(context)
+
             elif command == Commands.test:
                 print("Testing !!!")
 
@@ -344,6 +372,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         if self._slave_status == SlaveStatus.ready:
             self._loop(context)
+
+        elif self._slave_status == SlaveStatus.paused:
+            return
 
         elif self._slave_status == SlaveStatus.waituser:
             self._drawDisplayMessage(context)
@@ -435,6 +466,8 @@ class VirtualRealityCommandInfo(bpy.types.PropertyGroup):
         items=(("NONE", "None", ""),
                (Commands.recenter, "Re-Center", ""),
                (Commands.fullscreen, "Fullscreen", ""),
+               (Commands.play, "Play", ""),
+               (Commands.pause, "Pause", ""),
                (Commands.test, "Test", ""),
                ),
         default="NONE",

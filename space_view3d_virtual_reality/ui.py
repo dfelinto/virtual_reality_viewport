@@ -20,7 +20,7 @@ class VirtualRealityPanel(bpy.types.Panel):
         col = layout.column()
 
         if not vr.is_enabled:
-            col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="PLAY").action='ENABLE'
+            col.operator("view3d.virtual_reality_display", text="Virtual Reality").action='ENABLE'
         else:
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="X").action='DISABLE'
             col.separator()
@@ -29,6 +29,10 @@ class VirtualRealityPanel(bpy.types.Panel):
                 col.operator("view3d.virtual_reality_display", text="Start", icon="CAMERA_STEREO").action='FULLSCREEN'
 
             else:
+                row = col.row(align=True)
+                row.operator("view3d.virtual_reality_display", text="Play", icon="PLAY").action='PLAY'
+                row.operator("view3d.virtual_reality_display", text="Pause", icon="PAUSE").action='PAUSE'
+
                 row = col.row()
 
                 row.prop(vr, "use_preview")
