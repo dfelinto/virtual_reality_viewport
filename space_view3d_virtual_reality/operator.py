@@ -249,6 +249,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         elif self._slave_status == SlaveStatus.fullscreen:
             context.window_manager.virtual_reality.is_slave_setup = False
             ok = self._init(context)
+            self._slave_status = SlaveStatus.ready
 
         elif self._slave_status == SlaveStatus.play:
             self._slave_status = SlaveStatus.ready
