@@ -51,6 +51,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _hash_slave = -1
     _hash_master = -1
     _slave_status = 0
+    _slave_window = None
 
     action = bpy.props.EnumProperty(
         description="",
@@ -154,6 +155,12 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         if self._hmd:
             self._hmd.quit()
 
+        if self._slave_window:
+            if hasattr(self._slave_window, "close"):
+                self._slave_window.close()
+            else:
+                print("Error closing HMD window")
+
         # cleanup viewport
         if context.area:
             context.area.tag_redraw()
@@ -236,6 +243,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._slave_status = SlaveStatus.error
             self.quit(context)
 
+        self._slave_window = context.window
         return ok
 
     def _slaveHook(self, context, mode=''):
