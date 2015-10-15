@@ -85,8 +85,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         if event.type == 'TIMER':
-            TODO # only if extended mode
-            area.tag_redraw()
+            if self._hmd and not self._hmd.is_direct_mode:
+                area.tag_redraw()
 
         return {'PASS_THROUGH'}
 
