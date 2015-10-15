@@ -252,7 +252,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             modelview_matrix = self._hmd.modelview_matrix
 
             # drawing
-            offscreen_object.draw(projection_matrix, modelview_matrix)
+            offscreen_object.draw_view3d(projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
 
