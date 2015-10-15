@@ -235,6 +235,13 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._slave_status = SlaveStatus.dupli
 
         elif self._slave_status == SlaveStatus.dupli:
+            area = context.area
+            if area:
+                if hasattr(area, "use_mute"):
+                    area.use_mute = True
+                else:
+                    print("Error muting area")
+
             ok = self._slaveHook(context, SlaveStatus.uiless)
             self._slave_status = SlaveStatus.waituser
 
