@@ -30,8 +30,9 @@ class SlaveStatus:
     uiless       = 2  # view3d without UI
     waituser     = 3  # waiting for user to move window to HMD
     usermoved    = 4  # user moved window
-    ready        = 5  # all went well
-    error        = 6  # something didn't work
+    fullscreen   = 5  # wait a bit to prevent a crash on OSX
+    ready        = 6  # all went well
+    error        = 7  # something didn't work
 
 
 # ############################################################
@@ -220,9 +221,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return True
 
         elif self._slave_status == SlaveStatus.usermoved:
-            context.window_manager.virtual_reality.is_slave_setup = False
             bpy.ops.wm.window_fullscreen_toggle()
+            self._slave_status = SlaveStatus.fullscreen
 
+        elif self._slave_status == SlaveStatus.fullscreen:
+            context.window_manager.virtual_reality.is_slave_setup = False
             ok = self._init(context)
             self._slave_status = SlaveStatus.ready
 
