@@ -3,19 +3,15 @@ Addon to bring virtual reality devices to the Blender viewport.
 
 This is work in progress/pre-alpha state, use at your own risk.
 
-Prerequisite
+Pre-Requisite
 ============
 
-Currently working on Blender Test Build 2.75: http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.75
+Custom Blender build, from https://github.com/dfelinto/blender/tree/oculus
 
 How to Use
 ==========
 
-In the viewport press ``Space`` + ``Virtual Reality Viewport``.
-
-And then press:
-* ``Alt + F11`` (Window Fullscreen)
-* ``Alt + F10`` (Fullscreen Area and Hide Panels)
+In the viewport go to the toolshelf, select the ``Virtual Reality`` tab, click on the ``Virtual Reality`` button and follow the on-screen instructions.
 
 Current State
 =============
@@ -24,6 +20,8 @@ Current State
 Video of plugin working:
 
 [![Video of plugin in action](http://img.youtube.com/vi/saSn2qvW0aE/0.jpg)](https://www.youtube.com/watch?v=saSn2qvW0aE)
+
+Oculus SDK 0.5 is working across Windows, Mac and Linux.
 
 Installation
 ============
@@ -49,31 +47,30 @@ Followed by the rsync command for your OS:
 
 Mac:
 ```
-$ rsync -rv --exclude=.DS_Store --exclude=.git --exclude=*.blend1 --exclude=*.blend2 --exclude=*.swp --exclude=*.swo space_view3d_virtual_reality ~/Library/Application\ Support/Blender/2.75/scripts/addons/
+$ rsync -rv --exclude=.DS_Store --exclude=.git --exclude=*.blend1 --exclude=*.blend2 --exclude=*.swp --exclude=*.swo space_view3d_virtual_reality ~/Library/Application\ Support/Blender/2.76/scripts/addons/
 ```
 
 Linux:
 ```
-$ rsync -rv --exclude=.DS_Store --exclude=.git --exclude=*.blend1 --exclude=*.blend2 --exclude=*.swp --exclude=*.swo space_view3d_virtual_reality ~/.config/blender/2.75/scripts/addons/
+$ rsync -rv --exclude=.DS_Store --exclude=.git --exclude=*.blend1 --exclude=*.blend2 --exclude=*.swp --exclude=*.swo space_view3d_virtual_reality ~/.config/blender/2.76/scripts/addons/
 ```
 
 Optionally, instead of rsync you can generate a new ``.zip``, remove the previous version of the addon and re-install it.
 
 Roadmap
 =======
-Oculus DK2 is currently working. The next step is to support view navigation (`Shift + F`) within the addon.
+Oculus SDK 0.7 is still in progress.
 
-Later we can make it flexible enough to support other HMD devices.
+Later we can also extend the external bridge library to support other HMD devices.
 
-There are a few things I still need to implement:
-* Automatically go to clean fullscreen (Alt+F10) and fullwindow (Alt+F11)
-
-Feel free to send pull requests to any of the above.
+Also, we need to decide how to better handle the externals (bridge and python-ovrsdk).
 
 Credits
 =======
-Oculus DK2 Shader by Martins Upitis (which I guess based his work from elsewhere)
-
-OculusVR wrapper by https://github.com/jherico/python-ovrsdk
-
+Oculus SDK 0.5 wrapper by https://github.com/jherico/python-ovrsdk
+Oculus SDK 0.7 
 Blender Addon - Dalai Felinto - http://www.dalaifelinto.com
+
+Acknowledgements
+================
+Visgraf / IMPA - for supporting the core of the addon development
