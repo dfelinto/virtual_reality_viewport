@@ -61,11 +61,12 @@ class Oculus(HMD_Base):
             self.height = self._hmd.height_right
 
             # initialize FBO
-            super(Oculus, self).init()
+            if not super(Oculus, self).init():
+                raise Exception("Failed to initialize HMD")
 
             # send it back to HMD
             if not self._setup():
-                raise Exception("Failed to setup HMD")
+                raise Exception("Failed to setup Oculus")
 
         except Exception as E:
             self.error("init", E, True)
