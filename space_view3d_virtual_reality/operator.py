@@ -53,13 +53,18 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     # update the values in def _init_static
     _hmd = None
     _timer = None
-    _handle = None
+    _handle_pre = None
+    _handle_post = None
+    _handle_pixel = None
     _hash_slave = -1
     _hash_master = -1
     _slave_status = 0
     _slave_window = None
     _slave_area = None
     _is_mac = False
+    _visible_master = None
+    _visible_slave = None
+    _is_rendering = False
 
     action = bpy.props.EnumProperty(
         description="",
@@ -179,9 +184,17 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             wm.event_timer_remove(self._timer)
             self._timer = None
 
-        if self._handle:
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            self._handle = None
+        if self._handle_pre:
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle_pre, 'WINDOW')
+            self._handle_pre = None
+
+        if self._handle_post:
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle_post, 'WINDOW')
+            self._handle_post = None
+
+        if self._handle_pixel:
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle_pixel, 'WINDOW')
+            self._handle_pixel = None
 
         self._preview.quit()
 
@@ -201,13 +214,18 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     def _init_static(self):
         self._hmd = None
         self._timer = None
-        self._handle = None
+        self._handle_pre = None
+        self._handle_post = None
+        self._handle_pixel = None
         self._hash_slave = -1
         self._hash_master = -1
         self._slave_status = 0
         self._slave_window = None
         self._slave_area = None
         self._is_mac = isMac()
+        self._visible_master = None
+        self._visible_slave = None
+        self._is_rendering = False
 
     def init(self, context):
         """
@@ -229,7 +247,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         # setup modal
         self._timer = wm.event_timer_add(1.0 / 75.0, context.window) # 75 Hz
-        self._handle = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_px, (context,), 'WINDOW', 'POST_PIXEL')
+        self._handle_pre = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_pre, (context,), 'WINDOW', 'PRE_VIEW')
+        self._handle_post = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_post, (context,), 'WINDOW', 'POST_VIEW')
+        self._handle_pixel = bpy.types.SpaceView3D.draw_handler_add(self._draw_callback_pixel, (context,), 'WINDOW', 'POST_PIXEL')
         wm.modal_handler_add(self)
 
         if self._hmd.is_direct_mode:
@@ -379,6 +399,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         Get fresh tracking data and render into the FBO
         """
+        self._is_rendering = True
         self._hmd.loop(context)
 
         for i in range(2):
@@ -392,6 +413,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             offscreen_object.draw_view3d(projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
+        self._is_rendering = False
 
     def _drawMaster(self, context):
         wm = context.window_manager
@@ -483,14 +505,73 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         disable(font_id, SHADOW)
 
-    def _draw_callback_px(self, context):
+    def _pre_draw_hide(self, context, visible):
+        scene = context.scene
+        for ob in scene.objects:
+            if not ob.hide:
+                visible.append(ob)
+                ob.hide = True
+
+    def _post_draw_show(self, context, visible):
+        for ob in visible:
+            ob.hide = False
+
+    def _hide_master(self, context):
         """
-        callback function, run every time the viewport is refreshed
+        whether to hide the main 3d viewport
         """
+        vr = context.window_manager.virtual_reality
+        if vr.use_hmd_only:
+            return True
+
+        if vr.use_preview and vr.preview_scale == 100:
+            return True
+
+    def _draw_callback_pre(self, context):
+        """
+        hide all the scene objects to speed up rendering
+        """
+        if self._is_rendering:
+            return
+
         area = context.area
         hash_area = hash(area)
 
-        if (hash_area == self._hash_slave):
+        if hash_area == self._hash_slave:
+            self._visible_slave = []
+            self._pre_draw_hide(context, self._visible_slave)
+
+        elif hash_area == self._hash_master and self._hide_master(context):
+            self._visible_master = []
+            self._pre_draw_hide(context, self._visible_master)
+
+    def _draw_callback_post(self, context):
+        """
+        show all the hidden objects
+        """
+        if self._is_rendering:
+            return
+
+        area = context.area
+        hash_area = hash(area)
+
+        if hash_area == self._hash_slave:
+            self._post_draw_show(context, self._visible_slave)
+
+        elif hash_area == self._hash_master and self._hide_master(context):
+            self._post_draw_show(context, self._visible_master)
+
+    def _draw_callback_pixel(self, context):
+        """
+        callback function, run every time the viewport is refreshed
+        """
+        if self._is_rendering:
+            return
+
+        area = context.area
+        hash_area = hash(area)
+
+        if hash_area == self._hash_slave:
             self._drawSlave(context)
 
         elif hash_area == self._hash_master:
@@ -554,6 +635,11 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         default=False,
         )
 
+    use_hmd_only = BoolProperty(
+        name="HMD Only",
+        default=False,
+        )
+
     preview_scale = IntProperty(
             name="Preview Scale",
             min=0,
@@ -598,6 +684,7 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             self.commands.remove(0)
 
         self.use_preview = False
+        self.use_hmd_only = False
         self.error_message = ""
         self.is_enabled = False
         self.is_slave_setup = False
