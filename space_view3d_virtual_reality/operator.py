@@ -432,11 +432,13 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         Message telling user to move the window the HMD display
         """
+        from bgl import glColor4f
+
         window = context.window
         width = window.width
         height = window.height
 
-        #glColor4f(1.0, 1.0, 1.0, 1.0)
+        glColor4f(1.0, 1.0, 1.0, 1.0)
         font_id = 0
 
         # draw some text
