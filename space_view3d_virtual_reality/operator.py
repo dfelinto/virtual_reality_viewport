@@ -507,14 +507,30 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
     def _pre_draw_hide(self, context, visible):
         scene = context.scene
+        space = context.space_data
+
+        visible['objects'] = []
+        objects = visible['objects']
+
         for ob in scene.objects:
             if not ob.hide:
-                visible.append(ob)
+                objects.append(ob)
                 ob.hide = True
 
+        visible['show_grease_pencil'] = space.show_grease_pencil
+        space.show_grease_pencil = False
+
     def _post_draw_show(self, context, visible):
-        for ob in visible:
+        space = context.space_data
+
+        objects = visible['objects']
+
+        for ob in objects:
             ob.hide = False
+
+        visible['objects'] = []
+
+        space.show_grease_pencil = visible['show_grease_pencil']
 
     def _hide_master(self, context):
         """
@@ -542,11 +558,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         hash_area = hash(area)
 
         if hash_area == self._hash_slave:
-            self._visible_slave = []
+            self._visible_slave = {}
             self._pre_draw_hide(context, self._visible_slave)
 
         elif hash_area == self._hash_master and self._hide_master(context):
-            self._visible_master = []
+            self._visible_master = {}
             self._pre_draw_hide(context, self._visible_master)
 
     def _draw_callback_post(self, context):
