@@ -521,6 +521,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         whether to hide the main 3d viewport
         """
         vr = context.window_manager.virtual_reality
+        if vr.is_paused:
+            return False
+
         if vr.use_hmd_only:
             return True
 
