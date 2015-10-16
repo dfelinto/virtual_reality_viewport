@@ -6,7 +6,16 @@ This is work in progress/pre-alpha state, use at your own risk.
 Pre-Requisite
 ============
 
-Custom Blender build, from https://github.com/dfelinto/blender/tree/oculus
+Custom Blender build from https://github.com/dfelinto/blender/tree/oculus
+
+* Win 32: http://www.dalaifelinto.com/ftp/buids/framebuffer-win32_latest.zip
+* Win 64: http://www.dalaifelinto.com/ftp/buids/framebuffer-win64_latest.zip
+* OSX 64: http://www.dalaifelinto.com/ftp/buids/framebuffer-OSX-10.6-x86_64_latest.zip
+* Linux 64: http://www.dalaifelinto.com/ftp/buids/framebuffer-linux-glibc211-x86_64_latest.tar.bz2
+
+You can also get the latest version of the Addon here:
+* http://www.dalaifelinto.com/ftp/buids/space_view3d_virtual_reality.zip
+
 
 How to Use
 ==========
