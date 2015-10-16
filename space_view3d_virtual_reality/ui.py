@@ -23,32 +23,33 @@ class VirtualRealityPanel(bpy.types.Panel):
             col.operator("view3d.virtual_reality_display", text="Virtual Reality").action='ENABLE'
         else:
             col.operator("view3d.virtual_reality_display", text="Virtual Reality", icon="X").action='DISABLE'
-            col.separator()
+
+            box = col.box()
+            col = box.column()
 
             if vr.is_slave_setup:
                 col.operator("view3d.virtual_reality_display", text="Start", icon="CAMERA_STEREO").action='FULLSCREEN'
 
             else:
-                row = col.row(align=True)
-                row.operator("view3d.virtual_reality_display", text="Play", icon="PLAY").action='PLAY'
-                row.operator("view3d.virtual_reality_display", text="Pause", icon="PAUSE").action='PAUSE'
+                if vr.is_paused:
+                    col.operator("view3d.virtual_reality_display", text="Play", icon="PLAY").action='PLAY'
+                else:
+                    col.operator("view3d.virtual_reality_display", text="Pause", icon="PAUSE").action='PAUSE'
 
-                row = col.row()
+                    row = col.row()
+                    row.prop(vr, "use_preview")
+                    sub = row.column()
+                    sub.active = vr.use_preview
+                    sub.prop(vr, "preview_scale", text="Scale")
 
-                row.prop(vr, "use_preview")
-                sub = row.column()
-                sub.active = vr.use_preview
-                sub.prop(vr, "preview_scale", text="Scale")
+                    col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
 
-                col.separator()
-                col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
+                    col.label(text="Tracking:")
+                    col.row().prop(vr, "tracking_mode", expand=True)
 
-                col.separator()
-                col.label(text="Tracking:")
-                col.row().prop(vr, "tracking_mode", expand=True)
-
-                col.separator()
-                col.label(text=vr.error_message)
+                    if vr.error_message:
+                        col.separator()
+                        col.label(text=vr.error_message)
 
 
 # ############################################################
