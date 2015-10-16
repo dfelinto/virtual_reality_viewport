@@ -18,7 +18,7 @@ from ..lib import (
 class Oculus(HMD_Base):
     def __init__(self, context, error_callback):
         super(Oculus, self).__init__('Oculus', True, context, error_callback)
-        checkModule('oculus_sdk_bridge')
+        checkModule('hmd_sdk_bridge')
 
     def _getHMDClass(self):
         from bridge.oculus import HMD
