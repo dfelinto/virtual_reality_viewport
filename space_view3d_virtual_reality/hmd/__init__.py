@@ -78,8 +78,8 @@ class HMD_Base:
         self._framebuffer_object = [0, 0]
         self._color_object = [0, 0]
         self._offscreen_object = [None, None]
-        self._eye_orientation_raw = [[i for i in range(4)], [i for i in range(4)]]
-        self._eye_position_raw = [[i for i in range(3)], [i for i in range(3)]]
+        self._eye_orientation_raw = [[1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0]]
+        self._eye_position_raw = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
         self._scale = self._calculateScale(context)
 
         self._updateViewClipping(context)
@@ -239,7 +239,7 @@ class HMD_Base:
         if region.view_perspective == 'CAMERA':
             space = context.space_data
             camera = space.camera
-            return camera.matrix_world.copy().inverted()
+            return camera.matrix_world.inverted()
         else:
             return region.view_matrix.copy()
 

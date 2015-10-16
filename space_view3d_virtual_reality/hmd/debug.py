@@ -37,7 +37,46 @@ class Debug(HMD_Base):
         Get fresh tracking data
         """
         print_debug('loop()')
+
+        from math import fmod, radians
+        from mathutils import Matrix
+
+        global time
+
+        speed = 0.001
+        _range = 45.0
+
+        time = fmod(time + speed, 1.0)
+        factor = time * 2.0
+
+        if factor > 1.0:
+            factor = 2.0 - factor
+
+        one = 1.0 - factor
+
+        # one goes from 0.0 to 1.0, and then from 1.0 to 0.0
+        # angle goes from - range * 0.5 to + range * 0.5
+        angle = (one * _range) - (_range * 0.5)
+
+        quaternion = list(Matrix.Rotation(radians(angle), 4, 'Y').to_quaternion())
+
+        projection_matrix = self._getProjectionMatrix(context)
+
+        for eye in range(2):
+            self._eye_orientation_raw[eye] = quaternion
+            self._projection_matrix[eye] = projection_matrix
+
         super(Debug, self).loop(context)
+
+    def _getProjectionMatrix(self, context):
+        region = context.region_data
+
+        if region.view_perspective == 'CAMERA':
+            space = context.space_data
+            camera = space.camera
+            return camera.calc_matrix_camera()
+        else:
+            return region.perspective_matrix.copy()
 
     def frameReady(self):
         """
@@ -52,17 +91,5 @@ class Debug(HMD_Base):
         print_debug('quit()')
         return super(Debug, self).quit()
 
-    def updateMatrices(self, context):
-        """
-        Update OpenGL drawing matrices
-        """
-        camera = context.scene.camera
-
-        modelview_matrix = camera.matrix_world.inverted()
-        projection_matrix = camera.calc_matrix_camera()
-
-        for i in range(2):
-            self._modelview_matrix[i] = modelview_matrix
-            self._projection_matrix[i] = projection_matrix
-
-
+global time
+time = 0.0
