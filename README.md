@@ -67,9 +67,9 @@ Also, we need to decide how to better handle the externals (bridge and python-ov
 
 Credits
 =======
-Oculus SDK 0.5 wrapper by https://github.com/jherico/python-ovrsdk
-Oculus SDK 0.7 
-Blender Addon - Dalai Felinto - http://www.dalaifelinto.com
+* Oculus SDK 0.5 wrapper by https://github.com/jherico/python-ovrsdk
+* Oculus SDK 0.7 bridge: Dalai Felinto and Djalma Lucio @ Visgraf / IMPA 
+* Blender Addon - Dalai Felinto - http://www.dalaifelinto.com
 
 Acknowledgements
 ================
