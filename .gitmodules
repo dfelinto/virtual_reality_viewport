@@ -1,6 +1,3 @@
-[submodule "space_view3d_virtual_reality/lib/python-ovrsdk"]
-	path = space_view3d_virtual_reality/lib/python-ovrsdk
-	url = https://github.com/dfelinto/python-ovrsdk.git
 [submodule "space_view3d_virtual_reality/oculus_sdk_bridge"]
 	path = space_view3d_virtual_reality/oculus_sdk_bridge
 	url = http://git.impa.br/dfelinto/oculus_sdk_bridge.git
