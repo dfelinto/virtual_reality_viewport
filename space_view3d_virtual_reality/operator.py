@@ -276,6 +276,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             if not self._is_mac:
                 bpy.ops.wm.window_fullscreen_toggle()
 
+            space = context.space_data
+            if space.camera:
+                region = context.region_data
+                region.view_perspective = 'CAMERA'
+
             context.window_manager.virtual_reality.is_slave_setup = False
             ok = self._init(context)
             self._slave_status = SlaveStatus.ready
