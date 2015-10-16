@@ -5,21 +5,23 @@ This is work in progress/pre-alpha state, use at your own risk.
 
 Pre-Requisite
 ============
-
 Custom Blender build from https://github.com/dfelinto/blender/tree/oculus
 
 * Win 32: http://www.dalaifelinto.com/ftp/builds/framebuffer-win32_latest.zip
-* Win 64: http://www.dalaifelinto.com/ftp/builds/framebuffer-win64_latest.zip
 * OSX 64: http://www.dalaifelinto.com/ftp/builds/framebuffer-OSX-10.6-x86_64_latest.zip
 * Linux 64: http://www.dalaifelinto.com/ftp/builds/framebuffer-linux-glibc211-x86_64_latest.tar.bz2
 
 You can also get the latest version of the Addon here:
 * http://www.dalaifelinto.com/ftp/builds/space_view3d_virtual_reality.zip
 
+Note
+====
+* Windows 64 is not working at the moment.
+* Extended Mode is the only tested mode. Direct mode may or may not work
+* Oculus 0.5 runtime required
 
 How to Use
 ==========
-
 In the viewport go to the toolshelf, select the ``Virtual Reality`` tab, click on the ``Virtual Reality`` button and follow the on-screen instructions.
 
 Current State
