@@ -4,6 +4,3 @@
 [submodule "space_view3d_virtual_reality/oculus_sdk_bridge"]
 	path = space_view3d_virtual_reality/oculus_sdk_bridge
 	url = http://git.impa.br/dfelinto/oculus_sdk_bridge.git
-[submodule "space_view3d_virtual_reality/lib/oculus_sdk_bridge"]
-	path = space_view3d_virtual_reality/lib/oculus_sdk_bridge
-	url = http://git.impa.br/dfelinto/oculus_sdk_bridge.git
