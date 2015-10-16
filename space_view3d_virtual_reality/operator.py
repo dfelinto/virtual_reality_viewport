@@ -8,6 +8,7 @@ from .preview import Preview
 
 from .lib import (
         getDisplayBackend,
+        isMac,
         )
 
 
@@ -32,12 +33,11 @@ class SlaveStatus:
     uiless       = 2   # view3d without UI
     waituser     = 3   # waiting for user to move window to HMD
     usermoved    = 4   # user moved window
-    fullscreen   = 5   # wait a bit to prevent a crash on OSX
-    ready        = 6   # all went well
-    play         = 8   # play
-    pause        = 9   # pause
-    paused       = 10  # paused
-    error        = 11  # something didn't work
+    ready        = 5   # all went well
+    play         = 6   # play
+    pause        = 7   # pause
+    paused       = 8   # paused
+    error        = 9   # something didn't work
 
 
 # ############################################################
@@ -50,6 +50,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     bl_label = "Toggle Virtual Reality Display"
     bl_description = ""
 
+    # update the values in def _init_static
     _hmd = None
     _timer = None
     _handle = None
@@ -57,6 +58,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _hash_master = -1
     _slave_status = 0
     _slave_window = None
+    _slave_area = None
+    _is_mac = False
 
     action = bpy.props.EnumProperty(
         description="",
@@ -91,8 +94,12 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             area.tag_redraw()
             return {'FINISHED'}
 
-        if event.type == 'TIMER':
-            if self._hmd and not self._hmd.is_direct_mode:
+        if event.type == 'TIMER' and \
+           not vr.is_paused:
+            if self._slave_area:
+                self._slave_area.tag_redraw()
+
+            if vr.use_preview:
                 area.tag_redraw()
 
         return {'PASS_THROUGH'}
@@ -136,16 +143,27 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         elif self.action == 'PLAY':
             vr.command_push(Commands.play)
+            # we define is_paused right away, so
+            # the next MODAL loop already tag_redraw
+            vr.is_paused = False
             return {'FINISHED'}
 
         elif self.action == 'PAUSE':
             vr.command_push(Commands.pause)
+            self._redraw(context)
             return {'FINISHED'}
 
         else:
             assert False, "action \"{0}\" not implemented".format(self.action)
 
         return {'CANCELLED'}
+
+    def _redraw(self, context, redraw_master=True, redraw_slave=True):
+        if redraw_slave and self._slave_area:
+            self._slave_area.tag_redraw()
+
+        if redraw_master:
+            context.area.tag_redraw()
 
     def quit(self, context):
         """garbage collect"""
@@ -180,6 +198,17 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         if context.area:
             context.area.tag_redraw()
 
+    def _init_static(self):
+        self._hmd = None
+        self._timer = None
+        self._handle = None
+        self._hash_slave = -1
+        self._hash_master = -1
+        self._slave_status = 0
+        self._slave_window = None
+        self._slave_area = None
+        self._is_mac = isMac()
+
     def init(self, context):
         """
         Initialize the callbacks and the external devices
@@ -187,9 +216,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         wm = context.window_manager
         vr = wm.virtual_reality
 
+        vr.reset()
         vr.is_enabled = True
-        vr.error_message = ""
-        vr.is_slave_setup = False
+
+        self._init_static()
 
         display_backend = getDisplayBackend(context)
         self._hmd = HMD(display_backend, context, self._error_callback)
@@ -243,18 +273,20 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return True
 
         elif self._slave_status == SlaveStatus.usermoved:
-            bpy.ops.wm.window_fullscreen_toggle()
-            self._slave_status = SlaveStatus.fullscreen
+            if not self._is_mac:
+                bpy.ops.wm.window_fullscreen_toggle()
 
-        elif self._slave_status == SlaveStatus.fullscreen:
             context.window_manager.virtual_reality.is_slave_setup = False
             ok = self._init(context)
             self._slave_status = SlaveStatus.ready
 
         elif self._slave_status == SlaveStatus.play:
+            context.window_manager.virtual_reality.is_paused = False
             self._slave_status = SlaveStatus.ready
 
         elif self._slave_status == SlaveStatus.pause:
+            context.window_manager.virtual_reality.is_paused = True
+            context.area.tag_redraw()
             self._slave_status = SlaveStatus.paused
 
         else:
@@ -269,6 +301,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
     def _slaveHook(self, context, mode=''):
         self._hash_slave = -1
+        self._slave_area = None
         self._slave_status = SlaveStatus.non_setup
 
         hashes = []
@@ -299,6 +332,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
                 except ValueError:
                     self._hash_slave = _hash
+                    self._slave_area = area
                     print('Success finding slave')
                     return True
 
@@ -360,16 +394,27 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
 
         if self._hmd.is_direct_mode:
             self._commands(context)
+
+        if vr.is_paused:
+            return
+
+        if self._hmd.is_direct_mode:
             self._loop(context)
 
         if vr.use_preview:
             self._preview.loop(vr.preview_scale)
 
     def _drawSlave(self, context):
+        wm = context.window_manager
+        vr = wm.virtual_reality
+
         if self._hmd.is_direct_mode:
             return
 
         self._commands(context)
+
+        if vr.is_paused:
+            return
 
         if self._slave_status == SlaveStatus.ready:
             self._loop(context)
@@ -398,6 +443,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         x = int(0.1 * width)
         y = int(0.5 * height)
         font_size = int(width * 0.035)
+        line_gap = int(font_size * 1.5)
 
         from blf import (
                 SHADOW,
@@ -413,11 +459,21 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         enable(font_id, SHADOW)
         shadow(font_id, 5, 0.0, 0.0, 0.0, 1.0)
         shadow_offset(font_id, -2, -2)
-        position(font_id, x, y, 0)
         size(font_id, font_size, 72)
-        draw(font_id, "1. Move this window to the external HMD display")
-        position(font_id, x, y - int(font_size * 1.5), 0)
-        draw(font_id, "2. Select \"Start\" in the main window")
+
+        if self._is_mac:
+            position(font_id, x, y + line_gap, 0)
+            draw(font_id, "1. Move this window to the external HMD display")
+            position(font_id, x, y, 0)
+            draw(font_id, "2. Set this window to fullscreen (Alt + F11)")
+            position(font_id, x, y - line_gap, 0)
+            draw(font_id, "3. Select \"Start\" in the main window")
+        else:
+            position(font_id, x, y, 0)
+            draw(font_id, "1. Move this window to the external HMD display")
+            position(font_id, x, y - line_gap, 0)
+            draw(font_id, "2. Select \"Start\" in the main window")
+
         disable(font_id, SHADOW)
 
     def _draw_callback_px(self, context):
@@ -481,6 +537,11 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
             default=False,
             )
 
+    is_paused = BoolProperty(
+            name="Paused",
+            default=False,
+            )
+
     use_preview = BoolProperty(
         name="Preview",
         default=False,
@@ -533,6 +594,7 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         self.error_message = ""
         self.is_enabled = False
         self.is_slave_setup = False
+        self.is_paused = False
 
 
 # ############################################################

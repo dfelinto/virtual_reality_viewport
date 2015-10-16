@@ -10,7 +10,9 @@ def getAddonName():
 
 
 def getDisplayBackend(context):
-    """preference set in the addon"""
+    """
+    Preference set in the addon
+    """
     addon = getAddonName()
     preferences = context.user_preferences.addons[addon].preferences
     return preferences.display_backend
@@ -29,3 +31,10 @@ def checkModule(path):
     if library_path not in sys.path:
         sys.path.append(library_path)
 
+
+def isMac():
+    """
+    Return True if OS is Mac OSX
+    """
+    from sys import platform as _platform
+    return _platform == "darwin"
