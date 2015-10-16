@@ -20,7 +20,7 @@ class OculusLegacy(Oculus):
         checkModule('hmd_sdk_bridge')
 
     def _getHMDClass(self):
-        from bridge.oculus_legacy import HMD
+        from bridge.hmd.oculus_legacy import HMD
         return HMD
 
     def _setup(self):

@@ -6,7 +6,7 @@ Oculus (oculus.com) head mounted display
 It uses a C app to connect with the SDK
 
 The bridge code is hosted at Visgraf:
-http://git.impa.br/dfelinto/oculus_sdk_bridge
+http://git.impa.br/dfelinto/hmd_sdk_bridge
 """
 
 from . import HMD_Base
@@ -21,7 +21,7 @@ class Oculus(HMD_Base):
         checkModule('hmd_sdk_bridge')
 
     def _getHMDClass(self):
-        from bridge.oculus import HMD
+        from bridge.hmd.oculus import HMD
         return HMD
 
     @property
