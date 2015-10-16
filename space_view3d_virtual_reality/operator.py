@@ -531,7 +531,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         hide all the scene objects to speed up rendering
         """
-        if self._is_rendering:
+        if self._is_rendering or \
+           context.window_manager.virtual_reality.is_debug:
             return
 
         area = context.area
@@ -549,7 +550,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         show all the hidden objects
         """
-        if self._is_rendering:
+        if self._is_rendering or \
+           context.window_manager.virtual_reality.is_debug:
             return
 
         area = context.area
@@ -666,6 +668,12 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         default = False,
         )
 
+    is_debug = BoolProperty(
+        name = "Debug",
+        default = False,
+        description = "Skip the optimization to prevent extra drawing",
+        )
+
     commands = CollectionProperty(type=VirtualRealityCommandInfo)
 
 
@@ -689,6 +697,7 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         self.is_enabled = False
         self.is_slave_setup = False
         self.is_paused = False
+        self.is_debug = False
 
 
 # ############################################################
