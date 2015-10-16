@@ -43,7 +43,7 @@ class VirtualRealityPanel(bpy.types.Panel):
                     sub.prop(vr, "preview_scale", text="Scale")
 
                     sub = col.column()
-                    sub.active = vr.preview_scale < 100
+                    sub.active = not (vr.use_preview and vr.preview_scale == 100)
                     sub.prop(vr, "use_hmd_only")
 
                     col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
