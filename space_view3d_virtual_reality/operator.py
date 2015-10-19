@@ -402,6 +402,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._is_rendering = True
         self._hmd.loop(context)
 
+        scene = context.scene
+        view3d = context.space_data
+        region = context.region
+
         for i in range(2):
             self._hmd.setEye(i)
 
@@ -410,7 +414,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             modelview_matrix = self._hmd.modelview_matrix
 
             # drawing
-            offscreen_object.draw_view3d(projection_matrix, modelview_matrix)
+            try:
+                offscreen_object.draw_view3d(projection_matrix, modelview_matrix)
+            except:
+                #offscreen_object.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
+                offscreen_object.draw_view3d(scene, view3d, region, modelview_matrix, projection_matrix)
 
         self._hmd.frameReady()
         self._is_rendering = False
