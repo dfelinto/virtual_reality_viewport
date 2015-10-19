@@ -417,8 +417,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             try:
                 offscreen_object.draw_view3d(projection_matrix, modelview_matrix)
             except:
-                #offscreen_object.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
-                offscreen_object.draw_view3d(scene, view3d, region, modelview_matrix, projection_matrix)
+                offscreen_object.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
         self._is_rendering = False
