@@ -59,7 +59,6 @@ class HMD_Base:
         "_is_direct_mode",
         "_eye_pose",
         "_offscreen_object",
-        "_framebuffer_object",
         "_color_object",
         "_modelview_matrix",
         "_near",
@@ -75,7 +74,6 @@ class HMD_Base:
         self._height = [0, 0]
         self._projection_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
         self._modelview_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
-        self._framebuffer_object = [0, 0]
         self._color_object = [0, 0]
         self._offscreen_object = [None, None]
         self._eye_orientation_raw = [[1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0]]
@@ -109,9 +107,6 @@ class HMD_Base:
         return self._offscreen_object[self._current_eye]
 
     @property
-    def framebuffer_object(self):
-        return self._framebuffer_object[self._current_eye]
-
     @property
     def color_object(self):
         return self._color_object[self._current_eye]
@@ -137,7 +132,6 @@ class HMD_Base:
         try:
             for i in range(2):
                 self._offscreen_object[i] = gpu.offscreen.new(self._width[i], self._height[i], 0)
-                self._framebuffer_object[i] = self._offscreen_object[i].framebuffer_object
                 self._color_object[i] = self._offscreen_object[i].color_object
 
         except Exception as E:

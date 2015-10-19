@@ -22,6 +22,3 @@ class OculusLegacy(Oculus):
     def _getHMDClass(self):
         from bridge.hmd.oculus_legacy import HMD
         return HMD
-
-    def _setup(self):
-        return self._hmd.setup(self._color_object[0], self._color_object[1])
