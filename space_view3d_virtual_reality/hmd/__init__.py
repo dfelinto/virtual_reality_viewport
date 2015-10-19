@@ -131,7 +131,10 @@ class HMD_Base:
         try:
             for i in range(2):
                 self._offscreen[i] = gpu.offscreen.new(self._width[i], self._height[i], 0)
-                self._color_texture[i] = self._offscreen[i].color_texture
+                if hasattr(self._offscreen[i], "color_texture"):
+                    self._color_texture[i] = self._offscreen[i].color_texture
+                else: # TODO remove this once the patch is merged
+                    self._color_texture[i] = self._offscreen[i].color_object
 
         except Exception as E:
             print(E)
