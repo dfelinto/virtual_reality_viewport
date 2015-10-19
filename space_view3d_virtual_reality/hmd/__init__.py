@@ -58,8 +58,8 @@ class HMD_Base:
         "_head_transformation",
         "_is_direct_mode",
         "_eye_pose",
-        "_offscreen_object",
-        "_color_object",
+        "_offscreen",
+        "_color_texture",
         "_modelview_matrix",
         "_near",
         "_far",
@@ -74,8 +74,8 @@ class HMD_Base:
         self._height = [0, 0]
         self._projection_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
         self._modelview_matrix = [Matrix.Identity(4), Matrix.Identity(4)]
-        self._color_object = [0, 0]
-        self._offscreen_object = [None, None]
+        self._color_texture = [0, 0]
+        self._offscreen = [None, None]
         self._eye_orientation_raw = [[1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0]]
         self._eye_position_raw = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
         self._scale = self._calculateScale(context)
@@ -103,13 +103,12 @@ class HMD_Base:
         self._height[self._current_eye] = value
 
     @property
-    def offscreen_object(self):
-        return self._offscreen_object[self._current_eye]
+    def offscreen(self):
+        return self._offscreen[self._current_eye]
 
     @property
-    @property
-    def color_object(self):
-        return self._color_object[self._current_eye]
+    def color_texture(self):
+        return self._color_texture[self._current_eye]
 
     @property
     def projection_matrix(self):
@@ -131,13 +130,13 @@ class HMD_Base:
         """
         try:
             for i in range(2):
-                self._offscreen_object[i] = gpu.offscreen.new(self._width[i], self._height[i], 0)
-                self._color_object[i] = self._offscreen_object[i].color_object
+                self._offscreen[i] = gpu.offscreen.new(self._width[i], self._height[i], 0)
+                self._color_texture[i] = self._offscreen[i].color_texture
 
         except Exception as E:
             print(E)
-            self._offscreen_object[0] = None
-            self._offscreen_object[1] = None
+            self._offscreen[0] = None
+            self._offscreen[1] = None
             return False
 
         else:
@@ -171,7 +170,7 @@ class HMD_Base:
         """
         try:
             for i in range(2):
-                self._offscreen_object[i] = None
+                self._offscreen[i] = None
 
         except Exception as E:
             print(E)

@@ -16,20 +16,20 @@ from bgl import *
 
 class Preview:
     __slots__ = {
-            "_color_object_left",
-            "_color_object_right",
+            "_color_texture_left",
+            "_color_texture_right",
             }
 
-    def init(self, color_object_left, color_object_right):
+    def init(self, color_texture_left, color_texture_right):
         """
         Initialize preview window
 
-        :param color_object_left: 2D Texture binding ID (bind to the Framebuffer Object) for left eye
-        :type color_object_left: bgl.GLuint
-        :param color_object_right: 2D Texture binding ID (bind to the Framebuffer Object) for right eye
-        :type color_object_right: bgl.GLuint
+        :param color_texture_left: 2D Texture binding ID (bind to the Framebuffer Object) for left eye
+        :type color_texture_left: bgl.GLuint
+        :param color_texture_right: 2D Texture binding ID (bind to the Framebuffer Object) for right eye
+        :type color_texture_right: bgl.GLuint
         """
-        self.update(color_object_left, color_object_right)
+        self.update(color_texture_left, color_texture_right)
 
     def quit(self):
         """
@@ -37,17 +37,17 @@ class Preview:
         """
         pass
 
-    def update(self, color_object_left, color_object_right):
+    def update(self, color_texture_left, color_texture_right):
         """
         Update OpenGL binding textures
 
-        :param color_object_left: 2D Texture binding ID (bind to the Framebuffer Object) for left eye
-        :type color_object_left: bgl.GLuint
-        :param color_object_right: 2D Texture binding ID (bind to the Framebuffer Object) for right eye
-        :type color_object_right: bgl.GLuint
+        :param color_texture_left: 2D Texture binding ID (bind to the Framebuffer Object) for left eye
+        :type color_texture_left: bgl.GLuint
+        :param color_texture_right: 2D Texture binding ID (bind to the Framebuffer Object) for right eye
+        :type color_texture_right: bgl.GLuint
         """
-        self._color_object_left = color_object_left
-        self._color_object_right = color_object_right
+        self._color_texture_left = color_texture_left
+        self._color_texture_right = color_texture_right
 
 
     def _drawRectangle(self, eye):
@@ -92,10 +92,10 @@ class Preview:
         glEnable(GL_TEXTURE_2D)
         glActiveTexture(GL_TEXTURE0)
 
-        glBindTexture(GL_TEXTURE_2D, self._color_object_left)
+        glBindTexture(GL_TEXTURE_2D, self._color_texture_left)
         self._drawRectangle(0)
 
-        glBindTexture(GL_TEXTURE_2D, self._color_object_right)
+        glBindTexture(GL_TEXTURE_2D, self._color_texture_right)
         self._drawRectangle(1)
 
         glBindTexture(GL_TEXTURE_2D, act_tex[0])

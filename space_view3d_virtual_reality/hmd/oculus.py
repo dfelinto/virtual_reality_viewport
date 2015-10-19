@@ -77,7 +77,7 @@ class Oculus(HMD_Base):
             return True
 
     def _setup(self):
-        return self._hmd.setup(self._color_object[0], self._color_object[1])
+        return self._hmd.setup(self._color_texture[0], self._color_texture[1])
 
     def loop(self, context):
         """

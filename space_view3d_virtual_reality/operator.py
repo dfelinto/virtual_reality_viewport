@@ -266,12 +266,12 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return False
 
         # get the data from device
-        color_object = [0, 0]
+        color_texture = [0, 0]
         for i in range(2):
             self._hmd.setEye(i)
-            color_object[i] = self._hmd.color_object
+            color_texture[i] = self._hmd.color_texture
 
-        self._preview.init(color_object[0], color_object[1])
+        self._preview.init(color_texture[0], color_texture[1])
         return True
 
     def _slaveSetup(self, context):
@@ -409,15 +409,15 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         for i in range(2):
             self._hmd.setEye(i)
 
-            offscreen_object = self._hmd.offscreen_object
+            offscreen = self._hmd.offscreen
             projection_matrix = self._hmd.projection_matrix
             modelview_matrix = self._hmd.modelview_matrix
 
             # drawing
             try:
-                offscreen_object.draw_view3d(projection_matrix, modelview_matrix)
+                offscreen.draw_view3d(projection_matrix, modelview_matrix)
             except:
-                offscreen_object.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
+                offscreen.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
         self._is_rendering = False
