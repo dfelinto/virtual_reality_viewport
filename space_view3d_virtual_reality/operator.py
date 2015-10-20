@@ -202,10 +202,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._hmd.quit()
 
         if self._slave_window:
-            if hasattr(self._slave_window, "close"):
-                self._slave_window.close()
-            else:
-                print("Error closing HMD window")
+            self._slave_window.close()
 
         # cleanup viewport
         if context.area:
@@ -414,10 +411,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             modelview_matrix = self._hmd.modelview_matrix
 
             # drawing
-            try:
-                offscreen.draw_view3d(projection_matrix, modelview_matrix)
-            except:
-                offscreen.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
+            offscreen.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
         self._is_rendering = False
