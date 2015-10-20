@@ -5,20 +5,13 @@ This is work in progress/pre-alpha state, use at your own risk.
 
 Pre-Requisite
 ============
-Custom Blender build from https://github.com/dfelinto/blender/tree/oculus
-
-* Win 32: http://www.dalaifelinto.com/ftp/builds/framebuffer-win32_latest.zip
-* OSX 64: http://www.dalaifelinto.com/ftp/builds/framebuffer-OSX-10.6-x86_64_latest.zip
-* Linux 64: http://www.dalaifelinto.com/ftp/builds/framebuffer-linux-glibc211-x86_64_latest.tar.bz2
-
-You can also get the latest version of the Addon here:
-* http://www.dalaifelinto.com/ftp/builds/space_view3d_virtual_reality.zip
+* Blender 2.77 (https://builder.blender.org/download)
+* Oculus 0.5 runtime
 
 Note
 ====
-* Windows 64 is not working at the moment.
-* Extended Mode is the only tested mode. Direct mode may or may not work
-* Oculus 0.5 runtime required
+* Windows 64 builds are not working at the moment, use 32 bits instead
+* Extended Mode is the only supported mode
 
 How to Use
 ==========
@@ -28,14 +21,19 @@ Current State
 =============
 <img src="https://pbs.twimg.com/media/CCm5C85WYAAy2jL.jpg:large" width="600" />
 
-Video of plugin working:
+Video of an old version of the plugin working:
 
 [![Video of plugin in action](http://img.youtube.com/vi/saSn2qvW0aE/0.jpg)](https://www.youtube.com/watch?v=saSn2qvW0aE)
 
 Oculus SDK 0.5 is working across Windows, Mac and Linux.
 
-Installation
-============
+Easy Installation
+=================
+You can get the latest version of the Addon here:
+http://www.dalaifelinto.com/ftp/builds/space_view3d_virtual_reality.zip
+
+Advanced Installation
+=====================
 In a terminal paste the following commands:
 ```
 $ git clone https://github.com/dfelinto/virtual_reality_viewport.git
@@ -70,11 +68,8 @@ Optionally, instead of rsync you can generate a new ``.zip``, remove the previou
 
 Roadmap
 =======
-Oculus SDK 0.7 is still in progress.
-
-Later we can also extend the external bridge library to support other HMD devices.
-
-Also, we need to decide how to better handle the externals (bridge and python-ovrsdk).
+* Oculus SDK 0.7 is still in progress.
+* Later we can also extend the external bridge library to support other HMD devices.
 
 Credits
 =======
@@ -85,3 +80,4 @@ Credits
 Acknowledgements
 ================
 Visgraf / IMPA - for supporting the core of the addon development
+Campbell Barton - for reviewing the patches for Blender core
