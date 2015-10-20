@@ -7,6 +7,11 @@ Debug device for testing
 
 from . import HMD_Base
 
+from ..lib import (
+        checkModule,
+        )
+
+
 VERBOSE = False
 
 def print_debug(*args):
@@ -17,6 +22,7 @@ def print_debug(*args):
 class Debug(HMD_Base):
     def __init__(self, context, error_callback):
         super(Debug, self).__init__('Debug', False, context, error_callback)
+        checkModule('hmd_sdk_bridge')
 
     def init(self, context):
         """
@@ -83,6 +89,11 @@ class Debug(HMD_Base):
         The frame is ready to be send to the device
         """
         print_debug('frameReady()')
+        import bridge
+        import bridge_wrapper
+
+        bridge_wrapper.Debug_draw(self._color_texture[0])
+        bridge_wrapper.Debug_draw(self._color_texture[1])
 
     def quit(self):
         """

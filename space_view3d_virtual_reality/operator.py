@@ -293,7 +293,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             return True
 
         elif self._slave_status == SlaveStatus.usermoved:
-            if not self._is_mac:
+            if not self._is_mac and not getDisplayBackend(context) == 'DEBUG':
                 bpy.ops.wm.window_fullscreen_toggle()
 
             space = context.space_data
