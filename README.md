@@ -1,7 +1,7 @@
 # Virtual Reality Viewport
 Addon to bring virtual reality devices to the Blender viewport.
 
-This is work in progress/pre-alpha state, use at your own risk.
+This is work in progress, use at your own risk.
 
 Pre-Requisite
 ============
@@ -79,5 +79,6 @@ Credits
 
 Acknowledgements
 ================
-Visgraf / IMPA - for supporting the core of the addon development
-Campbell Barton - for reviewing the patches for Blender core
+* Visgraf / IMPA - for supporting the core of the addon development
+* Campbell Barton - for reviewing and contributing to the patches for Blender core
+* Thanks for all the testers
