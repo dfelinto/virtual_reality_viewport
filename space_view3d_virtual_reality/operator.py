@@ -104,7 +104,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             if self._slave_area:
                 self._slave_area.tag_redraw()
 
-            if vr.use_preview:
+            if vr.use_preview or (self._hmd and self._hmd.is_direct_mode):
                 area.tag_redraw()
 
         return {'PASS_THROUGH'}
