@@ -6,7 +6,12 @@ This is work in progress, use at your own risk.
 Pre-Requisite
 ============
 * Blender 2.77 (https://builder.blender.org/download)
+
+Oculus Legacy  (Linux, Mac, Windows)
 * Oculus 0.5 runtime
+
+Oculus (Windows)
+* Oculus 0.7 runtime
 
 Note
 ====
@@ -15,6 +20,8 @@ Note
 
 How to Use
 ==========
+In the ``User Preferences``, ``Add-ons``, ``3D View: Virtual Reality Viewport`` select the Display Backend you want to use.
+
 In the viewport go to the toolshelf, select the ``Virtual Reality`` tab, click on the ``Virtual Reality`` button and follow the on-screen instructions.
 
 Current State
@@ -24,8 +31,6 @@ Current State
 Video of an old version of the plugin working:
 
 [![Video of plugin in action](http://img.youtube.com/vi/saSn2qvW0aE/0.jpg)](https://www.youtube.com/watch?v=saSn2qvW0aE)
-
-Oculus SDK 0.5 is working across Windows, Mac and Linux.
 
 Easy Installation
 =================
@@ -80,5 +85,6 @@ Credits
 Acknowledgements
 ================
 * Visgraf / IMPA - for supporting the core of the addon development
+* Djalma Lucio for peer review and discussions about the bridge implementation
 * Campbell Barton - for reviewing and contributing to the patches for Blender core
 * Thanks for all the testers
