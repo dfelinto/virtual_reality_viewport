@@ -202,7 +202,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._hmd.quit()
 
         if self._slave_window:
-            self._slave_window.close()
+            override = context.copy()
+            override['window'] = self._slave_window
+            self._slave_window = None
+            bpy.ops.wm.window_close(override)
 
         # cleanup viewport
         if context.area:
