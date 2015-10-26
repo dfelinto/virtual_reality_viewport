@@ -57,8 +57,8 @@ class VirtualRealityPanel(bpy.types.Panel):
                         col.separator()
                         col.label(text=vr.error_message)
 
-                    col.separator()
-                    col.prop(vr, "is_debug")
+                    #col.separator()
+                    #col.prop(vr, "is_debug")
 
 
 # ############################################################
