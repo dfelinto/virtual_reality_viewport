@@ -51,6 +51,8 @@ class VirtualRealityPanel(bpy.types.Panel):
                     col.label(text="Tracking:")
                     col.row().prop(vr, "tracking_mode", expand=True)
 
+                    col.prop(vr, "lock_camera")
+
                     if vr.error_message:
                         col.separator()
                         col.label(text=vr.error_message)

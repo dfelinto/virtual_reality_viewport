@@ -202,9 +202,10 @@ class HMD_Base:
         """
         Update OpenGL drawing matrices
         """
-        tracking_mode = context.window_manager.virtual_reality.tracking_mode
+        vr = context.window_manager.virtual_reality
 
-        view_matrix = self._getViewMatrix(context)
+        tracking_mode = vr.tracking_mode
+        view_matrix = self._getViewMatrix(context, vr.lock_camera)
 
         for i in range(2):
             if tracking_mode == 'NONE':
@@ -229,10 +230,10 @@ class HMD_Base:
 
             self._modelview_matrix[i] = transformation.inverted() * view_matrix
 
-    def _getViewMatrix(self, context):
+    def _getViewMatrix(self, context, lock_camera):
         region = context.region_data
 
-        if region.view_perspective == 'CAMERA':
+        if (self._is_direct_mode and lock_camera) or (region.view_perspective == 'CAMERA'):
             space = context.space_data
             camera = space.camera
             return camera.matrix_world.inverted()

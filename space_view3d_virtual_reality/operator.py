@@ -687,6 +687,12 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         default="ALL",
         )
 
+    lock_camera = BoolProperty(
+        name="Lock Camera",
+        description="Lock the view to the camera (only for Direct Mode)",
+        default=False,
+        )
+
     is_slave_setup = BoolProperty(
         default = False,
         )
