@@ -104,8 +104,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             if self._slave_area:
                 self._slave_area.tag_redraw()
 
-            if vr.use_preview or (self._hmd and self._hmd.is_direct_mode):
+            if vr.use_preview:
                 area.tag_redraw()
+
+            if self._hmd and self._hmd.is_direct_mode:
+                self._drawMaster(context)
 
         return {'PASS_THROUGH'}
 
@@ -589,6 +592,9 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         callback function, run every time the viewport is refreshed
         """
         if self._is_rendering:
+            return
+
+        if self._hmd and self._hmd.is_direct_mode:
             return
 
         area = context.area
