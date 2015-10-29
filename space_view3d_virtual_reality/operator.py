@@ -554,8 +554,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         hide all the scene objects to speed up rendering
         """
-        if self._is_rendering or \
-           context.window_manager.virtual_reality.is_debug:
+        if self._is_rendering:
             return
 
         area = context.area
@@ -573,8 +572,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         """
         show all the hidden objects
         """
-        if self._is_rendering or \
-           context.window_manager.virtual_reality.is_debug:
+        if self._is_rendering:
             return
 
         area = context.area
