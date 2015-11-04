@@ -104,11 +104,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             if self._slave_area:
                 self._slave_area.tag_redraw()
 
-            if vr.use_preview:
-                area.tag_redraw()
-
             if self._hmd and self._hmd.is_direct_mode:
                 self._drawMaster(context)
+
+            if vr.use_preview:
+                area.tag_redraw()
 
         return {'PASS_THROUGH'}
 
@@ -422,6 +422,13 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._hmd.frameReady()
         self._is_rendering = False
 
+    def _drawPreview(self, context):
+        wm = context.window_manager
+        vr = wm.virtual_reality
+
+        if vr.use_preview:
+            self._preview.loop(vr.preview_scale)
+
     def _drawMaster(self, context):
         wm = context.window_manager
         vr = wm.virtual_reality
@@ -435,8 +442,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         if self._hmd.is_direct_mode:
             self._loop(context)
 
-        if vr.use_preview:
-            self._preview.loop(vr.preview_scale)
+        else:
+            self._drawPreview(context)
 
     def _drawSlave(self, context):
         wm = context.window_manager
@@ -594,9 +601,6 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         if self._is_rendering:
             return
 
-        if self._hmd and self._hmd.is_direct_mode:
-            return
-
         area = context.area
         hash_area = hash(area)
 
@@ -604,7 +608,12 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             self._drawSlave(context)
 
         elif hash_area == self._hash_master:
-            self._drawMaster(context)
+
+            if self._hmd and self._hmd.is_direct_mode:
+                self._drawPreview(context)
+
+            else:
+                self._drawMaster(context)
 
     def _error_callback(self, message, is_fatal):
         """
