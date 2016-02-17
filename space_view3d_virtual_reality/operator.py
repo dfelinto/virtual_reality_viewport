@@ -6,6 +6,8 @@ from .hmd import HMD
 
 from .preview import Preview
 
+from .render import Render
+
 from .lib import (
         getDisplayBackend,
         isMac,
@@ -24,6 +26,7 @@ class Commands:
     fullscreen = 'FULLSCREEN'
     play = 'PLAY'
     pause = 'PAUSE'
+    viewport_shade = 'VIEWPORTSHADE'
     test = 'TEST'
 
 
@@ -65,6 +68,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _visible_master = None
     _visible_slave = None
     _is_rendering = False
+    _is_render_preview = False
 
     action = bpy.props.EnumProperty(
         description="",
@@ -199,6 +203,8 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_pixel, 'WINDOW')
             self._handle_pixel = None
 
+        self._render.quit()
+
         self._preview.quit()
 
         if self._hmd:
@@ -229,6 +235,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._visible_master = None
         self._visible_slave = None
         self._is_rendering = False
+        self._is_render_preview = False
 
     def init(self, context):
         """
@@ -245,6 +252,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         display_backend = getDisplayBackend(context)
         self._hmd = HMD(display_backend, context, self._error_callback)
         self._preview = Preview()
+        self._render = Render()
 
         self._hash_master = hash(context.area)
 
@@ -275,6 +283,10 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             color_texture[i] = self._hmd.color_texture
 
         self._preview.init(color_texture[0], color_texture[1])
+
+        # setup opengl drawing or render preview
+        self._setupRenderPreview(context)
+
         return True
 
     def _slaveSetup(self, context):
@@ -392,11 +404,75 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
                 self._slave_status = SlaveStatus.pause
                 self._slaveSetup(context)
 
+            elif command == Commands.viewport_shade:
+                self._setupRenderPreview(context)
+
             elif command == Commands.test:
                 print("Testing !!!")
 
             else:
                 assert False, "_commands: command \"{0}\" not implemented"
+
+    def _setupRenderPreview(self, context):
+        """
+        return None if success, the error message otherwise
+        """
+        DEFAULT = 0
+        RENDERED = 1
+
+        wm = context.window_manager
+        vr = wm.virtual_reality
+
+        if vr.get("viewport_shade") != RENDERED:
+            self._render.quit()
+            self._is_render_preview = False
+            return
+
+        err = self._checkRenderPreview(context)
+        if err:
+            self.report({'ERROR'}, err)
+            self._is_render_preview = False
+            vr["viewport_shade"] = DEFAULT
+
+        else:
+            self._render.init(
+                    context.blend_data,
+                    context.scene,
+                    context.area,
+                    context.region,
+                    )
+
+            self._is_render_preview = True
+
+    def _checkRenderPreview(self, context):
+        """
+        """
+        scene = context.scene
+        render = scene.render
+        camera = scene.camera
+
+        if render.engine != 'CYCLES':
+            return "Render engine \"{0}\" not supported, switch to Cycles".format(render.engine)
+
+        if not camera:
+            return "Camera not found"
+
+        if not camera.data:
+            return "Camera data not found"
+
+        if camera.data.type != 'PANO':
+            return "Only panorama cameras are supported"
+
+        if camera.data.cycles.panorama_type != 'EQUIRECTANGULAR':
+            return "Only equirectangular panorama cameras are supported"
+
+        if not render.use_multiview:
+            return "Multiview is required, select \"Views\" in the Render Layer panel"
+
+        if render.views_format != 'STEREO_3D':
+            return "Switch the views format to Stereo 3D"
+
+        return None
 
     def _loop(self, context):
         """
@@ -416,8 +492,11 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
             projection_matrix = self._hmd.projection_matrix
             modelview_matrix = self._hmd.modelview_matrix
 
-            # drawing
-            offscreen.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
+            # drawing or rendering
+            if self._is_render_preview:
+                self._render.loop(i, offscreen, projection_matrix, modelview_matrix)
+            else:
+                offscreen.draw_view3d(scene, view3d, region, projection_matrix, modelview_matrix)
 
         self._hmd.frameReady()
         self._is_rendering = False
@@ -651,10 +730,26 @@ class VirtualRealityCommandInfo(bpy.types.PropertyGroup):
                (Commands.fullscreen, "Fullscreen", ""),
                (Commands.play, "Play", ""),
                (Commands.pause, "Pause", ""),
+               (Commands.viewport_shade, "Viewport Shade", ""),
                (Commands.test, "Test", ""),
                ),
         default="NONE",
         )
+
+
+def viewport_shade_get(self):
+    return self["viewport_shade"]
+
+
+def viewport_shade_set(self, value):
+    """
+    VirtualRealityInfo.viewport_shade callback
+    """
+    previous = self.get("viewport_shade")
+
+    if value != previous:
+        self["viewport_shade"] = value
+        self.command_push(Commands.viewport_shade)
 
 
 class VirtualRealityInfo(bpy.types.PropertyGroup):
@@ -716,8 +811,17 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         description = "Skip the optimization to prevent extra drawing",
         )
 
-    commands = CollectionProperty(type=VirtualRealityCommandInfo)
+    viewport_shade = EnumProperty(
+        name="Viewport Shade",
+        items=(("DEFAULT", "Default", ""),
+               ("RENDERED", "Rendered", ""),
+               ),
+        default="DEFAULT",
+        get=viewport_shade_get,
+        set=viewport_shade_set,
+        )
 
+    commands = CollectionProperty(type=VirtualRealityCommandInfo)
 
     def command_push(self, action):
         command = self.commands.add()
@@ -740,6 +844,7 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         self.is_slave_setup = False
         self.is_paused = False
         self.is_debug = False
+        self.viewport_shade = 'DEFAULT'
 
 
 # ############################################################

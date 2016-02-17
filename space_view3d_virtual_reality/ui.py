@@ -36,6 +36,8 @@ class VirtualRealityPanel(bpy.types.Panel):
                 else:
                     col.operator("view3d.virtual_reality_display", text="Pause", icon="PAUSE").action='PAUSE'
 
+                    col.row().prop(vr, "viewport_shade", expand=True)
+
                     row = col.row()
                     row.prop(vr, "use_preview")
                     sub = row.column()
@@ -49,7 +51,9 @@ class VirtualRealityPanel(bpy.types.Panel):
                     col.operator("view3d.virtual_reality_display", text="Re-Center").action='RECENTER'
 
                     col.label(text="Tracking:")
-                    col.row().prop(vr, "tracking_mode", expand=True)
+                    row = col.row()
+                    row.active = vr.viewport_shade != 'RENDERED'
+                    row.prop(vr, "tracking_mode", expand=True)
 
                     col.prop(vr, "lock_camera")
 
