@@ -13,6 +13,7 @@ from .lib import (
         isMac,
         )
 
+from time import time
 
 TODO = False
 
@@ -69,6 +70,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
     _visible_slave = None
     _is_rendering = False
     _is_render_preview = False
+    _time = 0.0
 
     action = bpy.props.EnumProperty(
         description="",
@@ -236,6 +238,7 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         self._visible_slave = None
         self._is_rendering = False
         self._is_render_preview = False
+        self._time = 0.0
 
     def init(self, context):
         """
@@ -485,6 +488,23 @@ class VirtualRealityDisplayOperator(bpy.types.Operator):
         view3d = context.space_data
         region = context.region
 
+        current_time = time()
+        if self._is_render_preview and self._render._offscreen and scene.camera:
+            wm = context.window_manager
+            vr = wm.virtual_reality
+
+            # if we update too often the system is too unresponsive
+            if (current_time - self._time) > vr.refresh_interval:
+                self._time = current_time
+                self._render._offscreen.render_view3d(
+                        context.blend_data,
+                        scene,
+                        context.area,
+                        region,
+                        scene.camera.matrix_world.inverted(),
+                        scene.camera.calc_matrix_camera(),
+                        )
+
         for i in range(2):
             self._hmd.setEye(i)
 
@@ -717,6 +737,7 @@ from bpy.props import (
         BoolProperty,
         CollectionProperty,
         EnumProperty,
+        FloatProperty,
         StringProperty,
         IntProperty,
         )
@@ -820,6 +841,15 @@ class VirtualRealityInfo(bpy.types.PropertyGroup):
         get=viewport_shade_get,
         set=viewport_shade_set,
         )
+
+    refresh_interval = FloatProperty(
+            name="Refresh Interval",
+            default=3.0,
+            min=0.0,
+            description=""
+            "Time interval in seconds for an update from render "
+            "preview (too often may lead to system unresponsiveness)",
+            )
 
     commands = CollectionProperty(type=VirtualRealityCommandInfo)
 

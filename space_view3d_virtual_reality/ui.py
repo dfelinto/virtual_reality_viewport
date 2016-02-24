@@ -37,6 +37,8 @@ class VirtualRealityPanel(bpy.types.Panel):
                     col.operator("view3d.virtual_reality_display", text="Pause", icon="PAUSE").action='PAUSE'
 
                     col.row().prop(vr, "viewport_shade", expand=True)
+                    if vr.viewport_shade == 'RENDERED':
+                        col.prop(vr, "refresh_interval")
 
                     row = col.row()
                     row.prop(vr, "use_preview")
