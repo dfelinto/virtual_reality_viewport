@@ -163,6 +163,9 @@ class Render:
         width = scene.render.resolution_x
         height = scene.render.resolution_y
 
+        width = region.width
+        height = region.height
+
         self._offscreen = gpu.offscreen.new(width, height, 0)
         self._color_texture = self._offscreen.color_texture
 
@@ -204,6 +207,40 @@ class Render:
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, 0)
         glDisable(GL_TEXTURE_2D)
+        view_reset()
+
+        # unbind hmd offscreen buffer
+        offscreen.unbind()
+
+
+    def loop_debug(self, eye, offscreen, projection_matrix, modelview_matrix):
+        """
+        Draw the entire image
+        """
+        if self._offscreen is None:
+            return
+
+        # bind hmd offscreen buffer
+        offscreen.bind()
+
+        # test code
+        act_tex = Buffer(GL_INT, 1)
+        glGetIntegerv(GL_TEXTURE_2D, act_tex)
+
+        glDisable(GL_DEPTH_TEST)
+
+        view_setup()
+
+        glEnable(GL_TEXTURE_2D)
+        glActiveTexture(GL_TEXTURE0)
+
+        glBindTexture(GL_TEXTURE_2D, self._color_texture)
+        draw_rectangle()
+
+        glBindTexture(GL_TEXTURE_2D, act_tex[0])
+
+        glDisable(GL_TEXTURE_2D)
+
         view_reset()
 
         # unbind hmd offscreen buffer
