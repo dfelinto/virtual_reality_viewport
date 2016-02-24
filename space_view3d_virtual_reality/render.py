@@ -40,8 +40,8 @@ vec2 equirectangular(vec3 vert)
     float theta = asin(vert.z);
     float phi = atan(vert.x, vert.y);
 
-    float u = 0.5 * (phi / PI) + 0.25;
-    float v = 0.5 + theta/PI;
+    float u = mod(0.5 * (phi / PI) + 0.25, 1.0f);
+    float v = mod(0.5 + theta/PI, 1.0f);
 
     return vec2(u,v);
 }
