@@ -13,11 +13,6 @@ Oculus Legacy  (Linux, Mac, Windows)
 Oculus (Windows)
 * Oculus 0.7 runtime
 
-Note
-====
-* Windows 64 builds are not working at the moment, use 32 bits instead
-* Extended Mode is the only supported mode
-
 How to Use
 ==========
 In the ``User Preferences``, ``Add-ons``, ``3D View: Virtual Reality Viewport`` select the Display Backend you want to use.
@@ -53,7 +48,7 @@ Update
 ======
 In a terminal paste the following commands:
 ```
-$ git pull origin
+$ git pull origin master
 $ git submodule update --recursive --remote
 ```
 
@@ -73,13 +68,13 @@ Optionally, instead of rsync you can generate a new ``.zip``, remove the previou
 
 Roadmap
 =======
-* Oculus SDK 0.7 is still in progress.
-* Later we can also extend the external bridge library to support other HMD devices.
+* Upgrade Oculus SDK 0.7 to 1.3
+* Extend the external bridge library to support other HMD devices
 
 Credits
 =======
 * Oculus SDK 0.5 wrapper by https://github.com/jherico/python-ovrsdk
-* Oculus SDK 0.7 bridge: Dalai Felinto and Djalma Lucio @ Visgraf / IMPA 
+* Oculus SDK 0.7 bridge: Dalai Felinto and Djalma Lucio @ Visgraf / IMPA
 * Blender Addon - Dalai Felinto - http://www.dalaifelinto.com
 
 Acknowledgements
