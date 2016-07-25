@@ -51,7 +51,7 @@ class VirtualRealityPreferences(bpy.types.AddonPreferences):
                ("OCULUS_LEGACY", "Oculus Legacy", "Oculus 0.5 - oculus.com"),
                ("DEBUG", "Debug", "Debug backend - no real HMD"),
                ),
-        default="OCULUS_LEGACY",
+        default="OCULUS",
         )
 
     def draw(self, context):
