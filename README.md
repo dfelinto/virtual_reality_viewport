@@ -11,7 +11,7 @@ Oculus Legacy  (Linux, Mac, Windows)
 * Oculus 0.5 runtime
 
 Oculus (Windows)
-* Oculus 0.7 runtime
+* Oculus 1.5 runtime
 
 How to Use
 ==========
@@ -74,8 +74,13 @@ Roadmap
 Credits
 =======
 * Oculus SDK 0.5 wrapper by https://github.com/jherico/python-ovrsdk
-* Oculus SDK 0.7 bridge: Dalai Felinto and Djalma Lucio @ Visgraf / IMPA
+* Oculus SDK 0.7/1.5 bridge: Dalai Felinto and Djalma Lucio @ Visgraf / IMPA
 * Blender Addon - Dalai Felinto - http://www.dalaifelinto.com
+
+Old Versions
+============
+For the previous version (with support for Oculus DK1 via runtime 0.7):
+http://www.dalaifelinto.com/ftp/builds/space_view3d_virtual_reality_089.zip
 
 Acknowledgements
 ================
