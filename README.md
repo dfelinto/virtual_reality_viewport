@@ -80,7 +80,7 @@ Credits
 Old Versions
 ============
 For the previous version (with support for Oculus DK1 via runtime 0.7):
-http://www.dalaifelinto.com/ftp/builds/space_view3d_virtual_reality_089.zip
+http://www.dalaifelinto.com/ftp/builds/space_view3d_virtual_reality_dk1.zip
 
 Acknowledgements
 ================
