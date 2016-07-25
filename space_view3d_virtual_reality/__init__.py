@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Virtual Reality Viewport",
     "author": "Dalai Felinto, Visgraf/IMPA",
-    "version": (0, 9),
+    "version": (1, 0),
     "blender": (2, 7, 7),
     "location": "View 3D Tools",
     "description": "",

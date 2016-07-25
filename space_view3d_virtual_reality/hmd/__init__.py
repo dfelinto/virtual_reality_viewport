@@ -27,14 +27,14 @@ def HMD(display_backend, context, error_callback):
     :param error_callback: error handler
     :type error_callback: func(message, is_fatal)
     """
-    from .oculus import Oculus
-    from .oculus_legacy import OculusLegacy
-    from .debug import Debug
+    from .oculus import HMD as OculusHMD
+    from .oculus_legacy import HMD as OculusLegacyHMD
+    from .debug import HMD as DebugHMD
 
     displays = {
-            'OCULUS':Oculus,
-            'OCULUS_LEGACY':OculusLegacy,
-            'DEBUG':Debug,
+            'OCULUS':OculusHMD,
+            'OCULUS_LEGACY':OculusLegacyHMD,
+            'DEBUG':DebugHMD,
             }
 
     if display_backend not in displays:
@@ -47,7 +47,7 @@ def HMD(display_backend, context, error_callback):
 # Base class inherited by HMD devices
 # ############################################################
 
-class HMD_Base:
+class baseHMD:
     __slots__ = {
         "_name",
         "_current_eye",

@@ -5,7 +5,7 @@ Debug
 Debug device for testing
 """
 
-from . import HMD_Base
+from . import baseHMD
 
 VERBOSE = False
 
@@ -14,9 +14,9 @@ def print_debug(*args):
         print("Debug: {0}".format(*args))
 
 
-class Debug(HMD_Base):
+class HMD(baseHMD):
     def __init__(self, context, error_callback):
-        super(Debug, self).__init__('Debug', False, context, error_callback)
+        super(HMD, self).__init__('HMD', False, context, error_callback)
 
     def init(self, context):
         """
@@ -30,7 +30,7 @@ class Debug(HMD_Base):
         self._width = [512, 512]
         self._height = [512, 512]
 
-        return super(Debug, self).init()
+        return super(HMD, self).init()
 
     def loop(self, context):
         """
@@ -66,7 +66,7 @@ class Debug(HMD_Base):
             self._eye_orientation_raw[eye] = quaternion
             self._projection_matrix[eye] = projection_matrix
 
-        super(Debug, self).loop(context)
+        super(HMD, self).loop(context)
 
     def _getProjectionMatrix(self, context):
         region = context.region_data
@@ -89,7 +89,8 @@ class Debug(HMD_Base):
         Garbage collection
         """
         print_debug('quit()')
-        return super(Debug, self).quit()
+        return super(HMD, self).quit()
 
 global time
 time = 0.0
+
