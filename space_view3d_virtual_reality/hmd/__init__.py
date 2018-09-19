@@ -29,10 +29,12 @@ def HMD(display_backend, context, error_callback):
     """
     from .oculus import HMD as OculusHMD
     from .oculus_legacy import HMD as OculusLegacyHMD
+    from .openvr import HMD as OpenVRHMD
     from .debug import HMD as DebugHMD
 
     displays = {
             'OCULUS':OculusHMD,
+            'OPENVR':OpenVRHMD,
             'OCULUS_LEGACY':OculusLegacyHMD,
             'DEBUG':DebugHMD,
             }
